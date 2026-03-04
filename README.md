@@ -55,6 +55,12 @@ sqlite3 web/learn_python.db ".tables"
 
 - [web/README.md](web/README.md)
 
+## Для контриб'юторів та операційки
+
+- [CONTRIBUTING.md](CONTRIBUTING.md)
+- [SECURITY.md](SECURITY.md)
+- [docs/ops/runbook.md](docs/ops/runbook.md)
+
 ## Troubleshooting
 
 ### 1) `Address already in use` (порт зайнятий)

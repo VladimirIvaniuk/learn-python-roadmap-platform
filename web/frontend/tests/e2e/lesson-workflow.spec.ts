@@ -7,6 +7,36 @@ async function mockApi(page: import('@playwright/test').Page) {
     const url = new URL(route.request().url())
     const path = url.pathname
     const method = route.request().method()
+    const auth = route.request().headers()['authorization']
+
+    if (path === '/api/auth/me') {
+      if (auth?.startsWith('Bearer ')) {
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({ user_id: 1, email: 'user@example.com' }),
+        })
+      } else {
+        await route.fulfill({
+          status: 401,
+          contentType: 'application/json',
+          body: JSON.stringify({ detail: 'Unauthorized' }),
+        })
+      }
+      return
+    }
+
+    if (path === '/api/auth/login' || path === '/api/auth/register') {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          token: 'test-token',
+          user: { id: 1, email: 'user@example.com', username: 'Test User' },
+        }),
+      })
+      return
+    }
 
     if (path === '/api/progress') {
       if (method === 'GET') {
@@ -18,6 +48,25 @@ async function mockApi(page: import('@playwright/test').Page) {
         return
       }
       await route.fulfill({ status: 200, contentType: 'application/json', body: '{}' })
+      return
+    }
+
+    if (path === '/api/adaptive/summary') {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          weak_topics: [],
+          reviews_due_count: 0,
+          reviews_due: [],
+          next_lesson: null,
+          next_lessons: [],
+          gamification: { xp: 0, level: 1, badges: [], goal_preset: 'balanced' },
+          skill_map: {},
+          skill_lesson_matrix: {},
+          quests: { daily: [], weekly: [] },
+        }),
+      })
       return
     }
 
@@ -61,6 +110,32 @@ async function mockApi(page: import('@playwright/test').Page) {
       return
     }
 
+    if (path === '/api/code') {
+      if (method === 'GET') {
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({ code: '' }),
+        })
+        return
+      }
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ success: true }) })
+      return
+    }
+
+    if (path === '/api/notes') {
+      if (method === 'GET') {
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({ content: '' }),
+        })
+        return
+      }
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ success: true }) })
+      return
+    }
+
     if (path === '/api/run') {
       await route.fulfill({
         status: 200,
@@ -91,7 +166,10 @@ async function mockApi(page: import('@playwright/test').Page) {
 test.beforeEach(async ({ page }) => {
   await mockApi(page)
   await page.addInitScript(() => {
-    localStorage.clear()
+    if (!sessionStorage.getItem('__e2e_storage_cleared__')) {
+      localStorage.clear()
+      sessionStorage.setItem('__e2e_storage_cleared__', '1')
+    }
   })
 })
 
@@ -137,4 +215,39 @@ test('example loads into editor with visible feedback', async ({ page }) => {
   await expect(
     page.locator('[data-testid="example-loaded-home"], [data-testid="example-loaded-lesson"]').first()
   ).toBeVisible()
+})
+
+test('user can sign in from login page', async ({ page }) => {
+  await page.goto('/login')
+
+  await page.locator('input[type="email"]:visible').first().fill('user@example.com')
+  await page.locator('input[type="password"]:visible').first().fill('secret123')
+  await page.locator('button:visible').filter({ hasText: /Увійти|Sign in/i }).first().click()
+
+  await expect(page).toHaveURL(/\/$/)
+  await expect(page.locator('.user-name')).toContainText('Test User')
+  await expect
+    .poll(async () => page.evaluate(() => localStorage.getItem('token')))
+    .toBe('test-token')
+})
+
+test('language toggle updates UI and persists after reload', async ({ page }) => {
+  await page.goto(LESSON_PATH)
+
+  await expect(page.getByTestId('run-button')).toContainText('Запустити')
+  await page.getByTestId('language-toggle').click()
+  await expect(page.getByTestId('run-button')).toContainText('Run')
+
+  await page.reload()
+  await expect(page.getByTestId('run-button')).toContainText('Run')
+  await expect
+    .poll(async () => page.evaluate(() => localStorage.getItem('learn_python_ui_lang')))
+    .toBe('en')
+})
+
+test('guest-mode link returns user to learning workspace', async ({ page }) => {
+  await page.goto('/login')
+  await page.getByRole('link', { name: /Без авторизації|Continue as guest|На головну/i }).click()
+  await expect(page).toHaveURL(/\/$/)
+  await expect(page.getByTestId('run-button')).toBeVisible()
 })

@@ -57,34 +57,34 @@ async function submit() {
       </div>
 
       <div class="login-tabs">
-        <button :class="{ active: isLogin }" @click="isLogin = true">{{ text.loginTab }}</button>
-        <button :class="{ active: !isLogin }" @click="isLogin = false">{{ text.registerTab }}</button>
+        <button data-testid="login-tab-login" :class="{ active: isLogin }" @click="isLogin = true">{{ text.loginTab }}</button>
+        <button data-testid="login-tab-register" :class="{ active: !isLogin }" @click="isLogin = false">{{ text.registerTab }}</button>
       </div>
 
       <form @submit.prevent="submit">
         <div class="form-group">
           <label>{{ text.email }}</label>
-          <input v-model="email" type="email" required autocomplete="email" placeholder="your@email.com" />
+          <input v-model="email" data-testid="login-email" type="email" required autocomplete="email" placeholder="your@email.com" />
         </div>
 
         <div v-if="!isLogin" class="form-group">
           <label>{{ text.username }}</label>
-          <input v-model="username" type="text" required placeholder="pythonist" />
+          <input v-model="username" data-testid="login-username" type="text" required placeholder="pythonist" />
         </div>
 
         <div class="form-group">
           <label>{{ text.password }}</label>
-          <input v-model="password" type="password" required autocomplete="current-password" placeholder="••••••••" />
+          <input v-model="password" data-testid="login-password" type="password" required autocomplete="current-password" placeholder="••••••••" />
         </div>
 
         <p v-if="error" class="error-msg">{{ error }}</p>
 
-        <button type="submit" class="btn btn-primary btn-full" :disabled="loading">
+        <button type="submit" data-testid="login-submit" class="btn btn-primary btn-full" :disabled="loading">
           {{ loading ? '…' : (isLogin ? text.loginButton : text.registerButton) }}
         </button>
       </form>
 
-      <RouterLink to="/" class="back-link">{{ text.guestMode }}</RouterLink>
+      <RouterLink to="/" data-testid="login-guest-link" class="back-link">{{ text.guestMode }}</RouterLink>
     </div>
   </div>
 </template>
