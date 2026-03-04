@@ -4,6 +4,8 @@ import { marked } from 'marked'
 import DOMPurify from 'dompurify'
 import { useLessonsStore } from '../stores/lessons'
 import { useUiLanguage } from '../composables/useUiLanguage'
+import UiTabs from './ui/UiTabs.vue'
+import UiButton from './ui/UiButton.vue'
 
 const emit = defineEmits<{ loadExample: [code: string] }>()
 
@@ -24,6 +26,7 @@ const TABS = computed(() => [
   { id: 'notes', label: text.value.tabNotes },
 ])
 const TAB_IDS = ['theory', 'task', 'example', 'notes']
+const selectedTabIndex = computed(() => TAB_IDS.indexOf(activeTab.value))
 
 const theoryHtml = computed(() => {
   const content = lessons.currentContent
@@ -126,55 +129,51 @@ onUnmounted(() => {
 
 <template>
   <div class="lesson-body">
-    <div class="tabs" :title="text.tabsTitle">
-      <button
-        v-for="tab in TABS"
-        :key="tab.id"
-        :data-testid="`lesson-tab-${tab.id}`"
-        class="tab"
-        :class="{ active: activeTab === tab.id }"
-        role="tab"
-        :aria-selected="activeTab === tab.id"
-        @click="activeTab = tab.id"
-      >{{ tab.label }}</button>
-    </div>
+    <UiTabs
+      :tabs="TABS"
+      :selected-index="selectedTabIndex"
+      test-id-prefix="lesson-tab"
+      @change="switchToTabByIndex"
+    >
+      <template #theory>
+        <div class="space-y-2" data-testid="lesson-panel-theory">
+          <div v-if="lessons.currentContent" class="markdown-body text-sm" v-html="theoryHtml"></div>
+          <div v-else class="text-sm text-text-secondary">{{ text.noLessonSelected }}</div>
+        </div>
+      </template>
 
-    <div v-if="activeTab === 'theory'" class="tab-content" data-testid="lesson-panel-theory">
-      <div class="tab-section-label">{{ text.tabTheory }}</div>
-      <div v-if="lessons.currentContent" class="markdown-body" v-html="theoryHtml"></div>
-      <div v-else class="no-lesson-msg">
-        {{ text.noLessonSelected }}
-      </div>
-    </div>
+      <template #task>
+        <div class="space-y-2" data-testid="lesson-panel-task">
+          <div class="markdown-body text-sm" v-html="taskHtml"></div>
+        </div>
+      </template>
 
-    <div v-else-if="activeTab === 'task'" class="tab-content" data-testid="lesson-panel-task">
-      <div class="tab-section-label">{{ text.tabTask }}</div>
-      <div class="markdown-body" v-html="taskHtml"></div>
-    </div>
+      <template #example>
+        <div class="space-y-2" data-testid="lesson-panel-example">
+          <div class="flex items-center gap-2">
+            <UiButton size="sm" data-testid="example-to-editor" :title="text.loadExampleToEditor" @click="loadExample">
+              {{ text.toEditor }}
+            </UiButton>
+            <span v-if="exampleLoaded" data-testid="example-loaded-lesson" class="text-xs text-success">{{ text.exampleLoaded }}</span>
+          </div>
+          <pre class="overflow-auto rounded-lg border border-border bg-bg-primary p-3 text-xs"><code>{{ lessons.currentContent?.example || '' }}</code></pre>
+        </div>
+      </template>
 
-    <div v-else-if="activeTab === 'example'" class="tab-content" data-testid="lesson-panel-example">
-      <div class="tab-section-label">{{ text.tabExample }}</div>
-      <div class="example-actions">
-        <button class="btn btn-small" data-testid="example-to-editor" @click="loadExample" :title="text.loadExampleToEditor">
-          {{ text.toEditor }}
-        </button>
-        <span v-if="exampleLoaded" data-testid="example-loaded-lesson" class="inline-success">{{ text.exampleLoaded }}</span>
-      </div>
-      <pre><code>{{ lessons.currentContent?.example || '' }}</code></pre>
-    </div>
-
-    <div v-else class="tab-content notes-tab-content" data-testid="lesson-panel-notes">
-      <div class="tab-section-label">{{ text.tabNotes }}</div>
-      <div class="notes-header">
-        <span class="notes-hint">{{ text.notesAutosave }}</span>
-        <span v-if="noteSaved" class="save-indicator">{{ text.saved }}</span>
-      </div>
-      <textarea
-        v-model="noteContent"
-        class="note-textarea"
-        :placeholder="text.notesPlaceholder"
-        @input="scheduleNoteSave"
-      ></textarea>
-    </div>
+      <template #notes>
+        <div class="space-y-2" data-testid="lesson-panel-notes">
+          <div class="flex items-center justify-between text-xs text-text-secondary">
+            <span>{{ text.notesAutosave }}</span>
+            <span v-if="noteSaved" class="text-success">{{ text.saved }}</span>
+          </div>
+          <textarea
+            v-model="noteContent"
+            class="h-44 w-full rounded-lg border border-border bg-bg-tertiary p-3 text-sm text-text-primary outline-none focus:border-accent"
+            :placeholder="text.notesPlaceholder"
+            @input="scheduleNoteSave"
+          ></textarea>
+        </div>
+      </template>
+    </UiTabs>
   </div>
 </template>

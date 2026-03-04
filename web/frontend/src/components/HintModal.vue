@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useUiLanguage } from '../composables/useUiLanguage'
+import UiModal from './ui/UiModal.vue'
+import UiButton from './ui/UiButton.vue'
 
 defineProps<{ hint: string; open: boolean }>()
 const emit = defineEmits<{ close: [] }>()
@@ -9,13 +11,8 @@ const text = computed(() => messages.value.hintModal)
 </script>
 
 <template>
-  <Teleport to="body">
-    <div v-if="open" class="modal" @click.self="emit('close')">
-      <div class="modal-content">
-        <h4>{{ text.title }}</h4>
-        <p>{{ hint }}</p>
-        <button class="btn" @click="emit('close')">{{ text.close }}</button>
-      </div>
-    </div>
-  </Teleport>
+  <UiModal :open="open" :title="text.title" @close="emit('close')">
+    <p class="mb-3 text-sm text-text-primary">{{ hint }}</p>
+    <UiButton size="sm" @click="emit('close')">{{ text.close }}</UiButton>
+  </UiModal>
 </template>

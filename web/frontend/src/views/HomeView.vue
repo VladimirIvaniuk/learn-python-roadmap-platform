@@ -5,6 +5,8 @@ import AppSidebar from '../components/AppSidebar.vue'
 import LessonBody from '../components/LessonBody.vue'
 import CodeEditor from '../components/CodeEditor.vue'
 import HintModal from '../components/HintModal.vue'
+import UiButton from '../components/ui/UiButton.vue'
+import UiAlert from '../components/ui/UiAlert.vue'
 import { useLessonsStore } from '../stores/lessons'
 import { useProgressStore } from '../stores/progress'
 import { useAuthStore } from '../stores/auth'
@@ -509,7 +511,7 @@ window.addEventListener('beforeunload', () => {
 
 <template>
   <div
-    class="app"
+    class="app lp-page"
     :class="{
       'zen-mode': zenMode,
       'editor-fullscreen': editorFullscreen,
@@ -521,58 +523,59 @@ window.addEventListener('beforeunload', () => {
   >
     <AppSidebar />
 
-    <main class="content">
+    <main class="content bg-bg-primary">
       <!-- Header -->
-      <div class="lesson-header">
+      <div class="lesson-header rounded-xl border border-border bg-bg-secondary">
         <div>
           <h2>{{ lessonTitle }}</h2>
           <div v-if="metaText" class="lesson-meta">{{ metaText }}</div>
         </div>
         <div class="header-right">
-          <button class="btn btn-small" @click="toggleSidebarCollapsed">
+          <UiButton size="sm" @click="toggleSidebarCollapsed">
             {{ sidebarCollapsed ? text.showMenu : text.hideMenu }}
-          </button>
+          </UiButton>
           <span v-if="isCurrentCompleted" style="color: var(--success);">{{ text.completed }}</span>
           <span v-if="lessons.currentLesson" class="timer">⏱ {{ timer.display }}</span>
           <span v-if="progress.streak" class="streak">🔥 {{ progress.streak }}</span>
           <span>{{ progress.completed.length }}/{{ progress.total }}</span>
         </div>
       </div>
-      <div v-if="lessonLoadError" class="inline-error-row" style="margin: .5rem .8rem 0 .8rem;">
+      <UiAlert v-if="lessonLoadError" class="mx-3 mt-2" variant="error">
         <span>{{ lessonLoadError }} {{ messages.status.genericRetryHint }}</span>
-        <button class="btn btn-small" data-testid="retry-load-lesson" @click="retryLessonLoad">{{ messages.common.retry }}</button>
-      </div>
+        <UiButton size="sm" data-testid="retry-load-lesson" @click="retryLessonLoad">{{ messages.common.retry }}</UiButton>
+      </UiAlert>
 
-      <div v-if="lessons.currentLesson" class="next-step-bar">
+      <div v-if="lessons.currentLesson" class="next-step-bar rounded-lg border border-border bg-bg-secondary">
         <div class="next-step-info">
           <strong>{{ text.nextStepTitle }}</strong>
           <small v-if="nextStepReason">{{ text.nextStepReason }}: {{ nextStepReason }}</small>
         </div>
         <div class="next-step-actions">
-          <button
-            class="btn btn-primary btn-small"
+          <UiButton
+            variant="primary"
+            size="sm"
             data-testid="next-step-primary"
             :disabled="!canGoToAnyNext"
             @click="goToNextStep"
           >
             {{ text.nextLesson }}
-          </button>
-          <button
-            class="btn btn-small"
+          </UiButton>
+          <UiButton
+            size="sm"
             data-testid="next-step-plan"
             :disabled="!auth.isLoggedIn"
             @click="goToPlan"
           >
             {{ text.toPlan }}
-          </button>
-          <button
-            class="btn btn-small"
+          </UiButton>
+          <UiButton
+            size="sm"
             data-testid="next-step-review"
             :disabled="!auth.isLoggedIn || !hasReviewQueue"
             @click="goToReview"
           >
             {{ text.toReview }}
-          </button>
+          </UiButton>
         </div>
       </div>
 
@@ -603,41 +606,42 @@ window.addEventListener('beforeunload', () => {
             </span>
             <div class="editor-actions">
               <div class="editor-actions-secondary">
-                <button
-                  class="btn btn-small"
+                <UiButton
+                  class="toolbar-btn"
+                  size="sm"
                   data-testid="hint-button"
                   :disabled="!lessons.currentContent?.hints?.length"
                   @click="showHint"
-                >{{ text.hint }}</button>
+                >{{ text.hint }}</UiButton>
                 <details class="modes-menu">
-                  <summary class="btn btn-small" data-testid="modes-menu-trigger">{{ text.modes }}</summary>
+                  <summary data-testid="modes-menu-trigger" class="toolbar-summary">{{ text.modes }}</summary>
                   <div class="modes-popover">
-                    <button class="btn btn-small" data-testid="mode-readable" :class="{ 'btn-secondary': readableMode }" @click="toggleReadableMode">
+                    <UiButton size="sm" data-testid="mode-readable" :variant="readableMode ? 'primary' : 'secondary'" @click="toggleReadableMode">
                       {{ readableMode ? text.readableOn : text.readable }}
-                    </button>
-                    <button class="btn btn-small" data-testid="mode-contrast" :class="{ 'btn-secondary': highContrastMode }" @click="toggleHighContrastMode">
+                    </UiButton>
+                    <UiButton size="sm" data-testid="mode-contrast" :variant="highContrastMode ? 'primary' : 'secondary'" @click="toggleHighContrastMode">
                       {{ highContrastMode ? text.contrastOn : text.contrast }}
-                    </button>
-                    <button class="btn btn-small" data-testid="mode-fullscreen" :class="{ 'btn-secondary': editorFullscreen }" @click="toggleEditorFullscreen">
+                    </UiButton>
+                    <UiButton size="sm" data-testid="mode-fullscreen" :variant="editorFullscreen ? 'primary' : 'secondary'" @click="toggleEditorFullscreen">
                       {{ editorFullscreen ? text.fullscreenExit : text.fullscreen }}
-                    </button>
-                    <button class="btn btn-small" data-testid="mode-zen" :class="{ 'btn-secondary': zenMode }" @click="toggleZenMode">
+                    </UiButton>
+                    <UiButton size="sm" data-testid="mode-zen" :variant="zenMode ? 'primary' : 'secondary'" @click="toggleZenMode">
                       {{ zenMode ? text.zenOn : text.zen }}
-                    </button>
-                    <button class="btn btn-small" data-testid="mode-focus" :class="{ 'btn-secondary': focusMode }" @click="toggleFocusMode">
+                    </UiButton>
+                    <UiButton size="sm" data-testid="mode-focus" :variant="focusMode ? 'primary' : 'secondary'" @click="toggleFocusMode">
                       {{ focusMode ? text.focusOn : text.focus }}
-                    </button>
+                    </UiButton>
                   </div>
                 </details>
-                <button class="btn btn-small" :disabled="running" @click="formatCode">{{ text.format }}</button>
+                <UiButton class="toolbar-btn" size="sm" :disabled="running" @click="formatCode">{{ text.format }}</UiButton>
               </div>
               <div class="editor-actions-primary">
-                <button class="btn btn-secondary" data-testid="run-button" :disabled="running" @click="runCode">
+                <UiButton class="run-cta" size="sm" data-testid="run-button" :disabled="running" @click="runCode">
                   {{ running ? text.running : text.run }}
-                </button>
-                <button class="btn btn-primary" data-testid="check-button" :disabled="running" @click="checkCode">
+                </UiButton>
+                <UiButton class="check-cta" size="sm" variant="primary" data-testid="check-button" :disabled="running" @click="checkCode">
                   {{ running ? text.checking : text.check }}
-                </button>
+                </UiButton>
               </div>
             </div>
           </div>
@@ -656,26 +660,26 @@ window.addEventListener('beforeunload', () => {
             <div class="quick-start-title">{{ text.quickStartTitle }}</div>
             <p class="quick-start-body">{{ text.quickStartBody }}</p>
             <div class="quick-start-actions">
-              <button class="btn btn-small" :disabled="!lessons.currentContent?.example" @click="insertExample">
+              <UiButton size="sm" :disabled="!lessons.currentContent?.example" @click="insertExample">
                 {{ text.quickStartLoadExample }}
-              </button>
-              <button class="btn btn-small" @click="quickStartDismissed = true">
+              </UiButton>
+              <UiButton size="sm" @click="quickStartDismissed = true">
                 {{ text.quickStartDismiss }}
-              </button>
+              </UiButton>
             </div>
           </div>
 
           <div v-show="!outputCollapsed" class="output-section">
             <div class="output-header">
               <span>{{ text.result }}</span>
-              <button class="btn btn-small" @click="toggleOutputCollapsed">{{ text.collapse }}</button>
+              <UiButton size="sm" @click="toggleOutputCollapsed">{{ text.collapse }}</UiButton>
             </div>
             <pre :class="['output', { error: outputError }]">{{ output }}</pre>
           </div>
           <div v-show="outputCollapsed" class="output-section output-collapsed">
             <div class="output-header">
               <span>{{ text.resultHidden }}</span>
-              <button class="btn btn-small" @click="toggleOutputCollapsed">{{ text.show }}</button>
+              <UiButton size="sm" @click="toggleOutputCollapsed">{{ text.show }}</UiButton>
             </div>
           </div>
 
@@ -730,9 +734,9 @@ window.addEventListener('beforeunload', () => {
                 >
                   <div style="display:flex;justify-content:space-between;align-items:center;gap:.5rem;">
                     <strong>{{ text.nextActions }}</strong>
-                    <button class="btn btn-small" @click="toggleFeedbackMode">
+                    <UiButton size="sm" @click="toggleFeedbackMode">
                       {{ feedbackMode === 'brief' ? text.detailed : text.brief }}
-                    </button>
+                    </UiButton>
                   </div>
                   <ul style="padding-left: 1rem; margin-top: .2rem;">
                     <li
@@ -775,9 +779,9 @@ window.addEventListener('beforeunload', () => {
               >
                 <div style="display:flex;justify-content:space-between;align-items:center;gap:.5rem;">
                   <strong>{{ text.nextActions }}</strong>
-                  <button class="btn btn-small" @click="toggleFeedbackMode">
+                  <UiButton size="sm" @click="toggleFeedbackMode">
                     {{ feedbackMode === 'brief' ? text.detailed : text.brief }}
-                  </button>
+                  </UiButton>
                 </div>
                 <ul style="padding-left: 1rem; margin-top: .2rem;">
                   <li

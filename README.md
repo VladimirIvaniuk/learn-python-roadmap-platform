@@ -37,6 +37,23 @@ npm run dev
 
 Frontend буде доступний на `http://localhost:5173`.
 
+### UI stack (актуально)
+
+Frontend працює на:
+
+- Vue 3 + TypeScript
+- Tailwind CSS v4 (utility-first)
+- Headless UI (`@headlessui/vue`) для доступних primitives (tabs/dialog/listbox/disclosure)
+
+### Responsive baseline (UI)
+
+Щоб інтерфейс залишався щільним і читабельним на різних екранах, закріплено такі профілі:
+
+- `<=1100px` - одноколонковий workspace (`main-split` стає вертикальним).
+- `1024-1280px` - tablet/compact desktop профіль з піджатими відступами і toolbar.
+- `1281-1440px` - проміжний профіль для плавного переходу до full desktop.
+- `>1440px` - основний desktop baseline без додаткової компресії.
+
 ### 4) Що з базою даних
 
 - за замовчуванням використовується **SQLite**
@@ -110,6 +127,8 @@ cd web/frontend
 npx playwright install --with-deps chromium
 npm run test:e2e
 ```
+
+Route-level smoke + visual snapshots виконуються в `web/frontend/tests/e2e/routes-smoke.spec.ts` і зберігають скріншоти як test attachments у Playwright report.
 
 ### 5) Помилки доступу до SQLite (`web/learn_python.db`)
 

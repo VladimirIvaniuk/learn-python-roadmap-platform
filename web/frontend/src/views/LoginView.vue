@@ -3,6 +3,9 @@ import { ref, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { useUiLanguage } from '../composables/useUiLanguage'
+import UiButton from '../components/ui/UiButton.vue'
+import UiInput from '../components/ui/UiInput.vue'
+import UiAlert from '../components/ui/UiAlert.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -55,110 +58,65 @@ async function submit() {
 </script>
 
 <template>
-  <div class="login-page">
-    <div class="login-card">
-      <div class="login-logo">
-        <h1>🐍 Learn Python</h1>
-        <p>{{ text.subtitle }}</p>
+  <div class="lp-page flex min-h-screen items-center justify-center p-4">
+    <div class="w-full max-w-md rounded-2xl border border-border bg-bg-secondary p-6 shadow-xl">
+      <div class="mb-6 text-center">
+        <h1 class="text-2xl font-bold text-accent">🐍 Learn Python</h1>
+        <p class="mt-1 text-sm text-text-secondary">{{ text.subtitle }}</p>
       </div>
 
-      <div class="login-tabs">
-        <button data-testid="login-tab-login" :class="{ active: isLogin }" @click="isLogin = true">{{ text.loginTab }}</button>
-        <button data-testid="login-tab-register" :class="{ active: !isLogin }" @click="isLogin = false">{{ text.registerTab }}</button>
-      </div>
-
-      <form @submit.prevent="submit">
-        <div class="form-group">
-          <label>{{ text.email }}</label>
-          <input v-model="email" data-testid="login-email" type="email" required autocomplete="email" placeholder="your@email.com" />
-        </div>
-
-        <div v-if="!isLogin" class="form-group">
-          <label>{{ text.username }}</label>
-          <input v-model="username" data-testid="login-username" type="text" required placeholder="pythonist" />
-        </div>
-
-        <div class="form-group">
-          <label>{{ text.password }}</label>
-          <input v-model="password" data-testid="login-password" type="password" required autocomplete="current-password" placeholder="••••••••" />
-        </div>
-
-        <p v-if="error" class="error-msg">{{ error }}</p>
-
-        <button type="submit" data-testid="login-submit" class="btn btn-primary btn-full" :disabled="loading">
-          {{ loading ? '…' : (isLogin ? text.loginButton : text.registerButton) }}
+      <div class="mb-6 grid grid-cols-2 rounded-lg bg-bg-tertiary p-1">
+        <button
+          data-testid="login-tab-login"
+          class="rounded-md px-3 py-2 text-sm transition"
+          :class="isLogin ? 'bg-accent text-white' : 'text-text-secondary hover:text-text-primary'"
+          @click="isLogin = true"
+        >
+          {{ text.loginTab }}
         </button>
+        <button
+          data-testid="login-tab-register"
+          class="rounded-md px-3 py-2 text-sm transition"
+          :class="!isLogin ? 'bg-accent text-white' : 'text-text-secondary hover:text-text-primary'"
+          @click="isLogin = false"
+        >
+          {{ text.registerTab }}
+        </button>
+      </div>
+
+      <form class="space-y-4" @submit.prevent="submit">
+        <div class="space-y-1">
+          <label class="text-xs text-text-secondary">{{ text.email }}</label>
+          <UiInput v-model="email" data-testid="login-email" type="email" required autocomplete="email" placeholder="your@email.com" />
+        </div>
+
+        <div v-if="!isLogin" class="space-y-1">
+          <label class="text-xs text-text-secondary">{{ text.username }}</label>
+          <UiInput v-model="username" data-testid="login-username" type="text" required autocomplete="username" placeholder="pythonist" />
+        </div>
+
+        <div class="space-y-1">
+          <label class="text-xs text-text-secondary">{{ text.password }}</label>
+          <UiInput v-model="password" data-testid="login-password" type="password" required autocomplete="current-password" placeholder="••••••••" />
+        </div>
+
+        <UiAlert v-if="error" variant="error">
+          <span>{{ error }}</span>
+        </UiAlert>
+
+        <UiButton type="submit" variant="primary" size="md" class="w-full" data-testid="login-submit" :disabled="loading">
+          {{ loading ? '…' : (isLogin ? text.loginButton : text.registerButton) }}
+        </UiButton>
       </form>
 
-      <p class="login-note">{{ text.progressNote }}</p>
-      <RouterLink :to="returnTarget" data-testid="login-guest-link" class="back-link">{{ text.guestMode }}</RouterLink>
+      <p class="mt-4 text-xs leading-5 text-text-secondary">{{ text.progressNote }}</p>
+      <RouterLink
+        :to="returnTarget"
+        data-testid="login-guest-link"
+        class="mt-4 block text-center text-xs text-text-secondary transition hover:text-accent"
+      >
+        {{ text.guestMode }}
+      </RouterLink>
     </div>
   </div>
 </template>
-
-<style scoped>
-.login-page {
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--bg-primary);
-}
-.login-card {
-  background: var(--bg-secondary);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 2rem;
-  width: 100%;
-  max-width: 380px;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-}
-.login-logo { text-align: center; margin-bottom: 1.5rem; }
-.login-logo h1 { margin: 0; color: var(--accent); font-size: 1.5rem; }
-.login-logo p { margin: 0.25rem 0 0; color: var(--text-secondary); font-size: 0.9rem; }
-
-.login-tabs {
-  display: flex;
-  background: var(--bg-tertiary);
-  border-radius: 8px;
-  padding: 4px;
-  margin-bottom: 1.5rem;
-}
-.login-tabs button {
-  flex: 1; padding: 0.5rem;
-  border: none; background: none;
-  border-radius: 6px;
-  color: var(--text-secondary);
-  cursor: pointer; font-size: 0.9rem;
-  transition: all 0.2s;
-}
-.login-tabs button.active { background: var(--accent); color: #0d1117; }
-
-.form-group { margin-bottom: 1rem; }
-.form-group label { display: block; font-size: 0.85rem; margin-bottom: 0.4rem; color: var(--text-secondary); }
-.form-group input {
-  width: 100%; padding: 0.6rem 0.75rem;
-  background: var(--bg-tertiary);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  color: var(--text-primary);
-  font-size: 0.9rem; box-sizing: border-box;
-  outline: none; transition: border-color 0.2s;
-}
-.form-group input:focus { border-color: var(--accent); }
-
-.error-msg { color: var(--error); font-size: 0.85rem; margin-bottom: 1rem; }
-.login-note {
-  margin: 0.85rem 0 0;
-  color: var(--text-secondary);
-  font-size: 0.78rem;
-  line-height: 1.35;
-}
-.btn-full { width: 100%; margin-top: 0.25rem; }
-.back-link {
-  display: block; text-align: center;
-  margin-top: 1rem; color: var(--text-secondary);
-  font-size: 0.82rem; text-decoration: none;
-}
-.back-link:hover { color: var(--accent); }
-</style>
