@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="uk" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Статистика — Learn Python</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <style>
+        body { padding: 2rem; max-width: 900px; margin: 0 auto; }
+
+        .stats-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        .stats-header h1 { margin: 0; font-size: 1.5rem; }
+        .back-link {
+            color: var(--accent);
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+        .back-link:hover { text-decoration: underline; }
+
+        /* Summary cards */
+        .stats-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        .stat-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1.25rem;
+            text-align: center;
+        }
+        .stat-card .value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--accent);
+            line-height: 1;
+            margin-bottom: 0.4rem;
+        }
+        .stat-card .label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        /* Sections */
+        .stats-section {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1.25rem;
+            margin-bottom: 1.5rem;
+        }
+        .stats-section h2 {
+            margin: 0 0 1rem;
+            font-size: 1rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        /* Level progress bars */
+        .level-row {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 0.75rem;
+        }
+        .level-name {
+            width: 70px;
+            font-size: 0.85rem;
+            flex-shrink: 0;
+        }
+        .progress-bar-wrap {
+            flex: 1;
+            background: var(--bg-tertiary);
+            border-radius: 6px;
+            height: 10px;
+            overflow: hidden;
+        }
+        .progress-bar-fill {
+            height: 100%;
+            background: var(--accent);
+            border-radius: 6px;
+            transition: width 0.6s ease;
+        }
+        .level-count {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            width: 50px;
+            text-align: right;
+            flex-shrink: 0;
+        }
+
+        /* Activity calendar */
+        .calendar-wrap {
+            overflow-x: auto;
+        }
+        .calendar-grid {
+            display: flex;
+            gap: 3px;
+        }
+        .cal-week {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+        .cal-day {
+            width: 13px;
+            height: 13px;
+            border-radius: 2px;
+            background: var(--bg-tertiary);
+        }
+        .cal-day[data-count="1"] { background: #0e4429; }
+        .cal-day[data-count="2"] { background: #006d32; }
+        .cal-day[data-count="3"] { background: #26a641; }
+        .cal-day[data-count="4"] { background: #39d353; }
+        .calendar-months {
+            display: flex;
+            gap: 3px;
+            margin-bottom: 4px;
+        }
+        .cal-month-label {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            min-width: 13px;
+        }
+
+        /* Lesson table */
+        .lesson-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+        }
+        .lesson-table th {
+            text-align: left;
+            padding: 0.5rem 0.75rem;
+            border-bottom: 1px solid var(--border);
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+        .lesson-table td {
+            padding: 0.5rem 0.75rem;
+            border-bottom: 1px solid var(--border);
+        }
+        .lesson-table tr:last-child td { border-bottom: none; }
+        .lesson-table tr:hover td { background: var(--bg-tertiary); }
+        .time-cell { color: var(--accent); font-variant-numeric: tabular-nums; }
+        .date-cell { color: var(--text-secondary); font-size: 0.8rem; }
+
+        .no-data {
+            color: var(--text-secondary);
+            text-align: center;
+            padding: 2rem;
+            font-size: 0.9rem;
+        }
+        .auth-required {
+            text-align: center;
+            padding: 3rem;
+        }
+        .auth-required a { color: var(--accent); }
+    </style>
+</head>
+<body>
+    <div class="stats-header">
+        <a href="/" class="back-link">← Назад</a>
+        <h1>Статистика навчання</h1>
+    </div>
+
+    <div id="stats-root"></div>
+
+    <script>
+    const token = localStorage.getItem("token");
+
+    function fmtTime(secs) {
+        if (!secs) return "—";
+        const h = Math.floor(secs / 3600);
+        const m = Math.floor((secs % 3600) / 60);
+        const s = secs % 60;
+        if (h > 0) return `${h}г ${m}хв`;
+        if (m > 0) return `${m}хв ${String(s).padStart(2,"0")}с`;
+        return `${s}с`;
+    }
+
+    function fmtDate(iso) {
+        if (!iso) return "—";
+        return new Date(iso).toLocaleDateString("uk-UA", { day: "2-digit", month: "short" });
+    }
+
+    function lessonTitle(moduleId, lessonId) {
+        return lessonId.replace(/_/g, " ");
+    }
+
+    function buildCalendar(daily) {
+        const WEEKS = 52;
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        // Знайти початок (перший день 52 тижні назад, вирівняний на неділю)
+        const start = new Date(today);
+        start.setDate(today.getDate() - (WEEKS * 7) + 1);
+
+        const weeks = [];
+        let cur = new Date(start);
+        while (cur <= today) {
+            const week = [];
+            for (let d = 0; d < 7 && cur <= today; d++) {
+                const key = cur.toISOString().slice(0, 10);
+                const count = Math.min(daily[key] || 0, 4);
+                week.push({ key, count, date: new Date(cur) });
+                cur.setDate(cur.getDate() + 1);
+            }
+            weeks.push(week);
+        }
+
+        // Місячні мітки
+        const monthLabels = [];
+        let lastMonth = -1;
+        weeks.forEach((week, wi) => {
+            const m = week[0].date.getMonth();
+            if (m !== lastMonth) {
+                monthLabels.push({ wi, label: week[0].date.toLocaleDateString("uk-UA", { month: "short" }) });
+                lastMonth = m;
+            }
+        });
+
+        const wrap = document.createElement("div");
+        wrap.className = "calendar-wrap";
+
+        // Місяці
+        const monthRow = document.createElement("div");
+        monthRow.className = "calendar-months";
+        let prev = 0;
+        monthLabels.forEach(({ wi, label }) => {
+            for (let i = prev; i < wi; i++) {
+                const sp = document.createElement("div");
+                sp.className = "cal-month-label";
+                sp.style.width = "16px";
+                monthRow.appendChild(sp);
+            }
+            const ml = document.createElement("div");
+            ml.className = "cal-month-label";
+            ml.textContent = label;
+            ml.style.minWidth = "40px";
+            monthRow.appendChild(ml);
+            prev = wi + 3;
+        });
+        wrap.appendChild(monthRow);
+
+        // Дні
+        const grid = document.createElement("div");
+        grid.className = "calendar-grid";
+        weeks.forEach(week => {
+            const col = document.createElement("div");
+            col.className = "cal-week";
+            week.forEach(({ key, count }) => {
+                const cell = document.createElement("div");
+                cell.className = "cal-day";
+                if (count > 0) cell.setAttribute("data-count", String(count));
+                cell.title = `${key}: ${count} урок(ів)`;
+                col.appendChild(cell);
+            });
+            grid.appendChild(col);
+        });
+        wrap.appendChild(grid);
+        return wrap;
+    }
+
+    async function loadStats() {
+        const root = document.getElementById("stats-root");
+
+        if (!token) {
+            root.innerHTML = `<div class="auth-required">
+                <p>Потрібна авторизація для перегляду статистики.</p>
+                <a href="/login">Увійти →</a>
+            </div>`;
+            return;
+        }
+
+        let data;
+        try {
+            const res = await fetch("/api/stats", {
+                headers: { "Authorization": `Bearer ${token}` }
+            });
+            if (res.status === 401) {
+                root.innerHTML = `<div class="auth-required"><a href="/login">Увійти →</a></div>`;
+                return;
+            }
+            data = await res.json();
+        } catch {
+            root.innerHTML = `<div class="no-data">Не вдалось завантажити статистику. Перевірте з'єднання.</div>`;
+            return;
+        }
+
+        // ── Summary cards ──────────────────────────────────────
+        const cards = document.createElement("div");
+        cards.className = "stats-cards";
+
+        const pct = data.total_lessons > 0
+            ? Math.round(data.total_completed / data.total_lessons * 100)
+            : 0;
+
+        [
+            { value: `${data.total_completed}/${data.total_lessons}`, label: "Уроків завершено" },
+            { value: `${pct}%`, label: "Загальний прогрес" },
+            { value: fmtTime(data.total_time_seconds), label: "Часу витрачено" },
+        ].forEach(({ value, label }) => {
+            const card = document.createElement("div");
+            card.className = "stat-card";
+            card.innerHTML = `<div class="value">${value}</div><div class="label">${label}</div>`;
+            cards.appendChild(card);
+        });
+        root.appendChild(cards);
+
+        // ── Activity calendar ──────────────────────────────────
+        const calSection = document.createElement("div");
+        calSection.className = "stats-section";
+        calSection.innerHTML = "<h2>Активність</h2>";
+        const totalDays = Object.keys(data.daily_activity).length;
+        if (totalDays === 0) {
+            calSection.innerHTML += `<div class="no-data">Поки немає активності. Завершіть перший урок!</div>`;
+        } else {
+            calSection.appendChild(buildCalendar(data.daily_activity));
+        }
+        root.appendChild(calSection);
+
+        // ── Level progress ─────────────────────────────────────
+        const levelSection = document.createElement("div");
+        levelSection.className = "stats-section";
+        levelSection.innerHTML = "<h2>Прогрес по рівнях</h2>";
+        Object.entries(data.by_level).forEach(([, lvl]) => {
+            const pctLvl = lvl.total > 0 ? Math.round(lvl.done / lvl.total * 100) : 0;
+            const row = document.createElement("div");
+            row.className = "level-row";
+            row.innerHTML = `
+                <span class="level-name">${lvl.name}</span>
+                <div class="progress-bar-wrap">
+                    <div class="progress-bar-fill" style="width:${pctLvl}%"></div>
+                </div>
+                <span class="level-count">${lvl.done}/${lvl.total}</span>`;
+            levelSection.appendChild(row);
+        });
+        root.appendChild(levelSection);
+
+        // ── Lesson table ───────────────────────────────────────
+        if (data.lesson_times.length > 0) {
+            const tableSection = document.createElement("div");
+            tableSection.className = "stats-section";
+            tableSection.innerHTML = "<h2>Завершені уроки</h2>";
+            const table = document.createElement("table");
+            table.className = "lesson-table";
+            table.innerHTML = `<thead><tr>
+                <th>Урок</th><th>Модуль</th><th>Час</th><th>Дата</th>
+            </tr></thead>`;
+            const tbody = document.createElement("tbody");
+            data.lesson_times.forEach(({ module_id, lesson_id, time_spent, completed_at }) => {
+                const tr = document.createElement("tr");
+                tr.innerHTML = `
+                    <td>${lessonTitle(module_id, lesson_id)}</td>
+                    <td>${module_id}</td>
+                    <td class="time-cell">${fmtTime(time_spent)}</td>
+                    <td class="date-cell">${fmtDate(completed_at)}</td>`;
+                tbody.appendChild(tr);
+            });
+            table.appendChild(tbody);
+            tableSection.appendChild(table);
+            root.appendChild(tableSection);
+        } else {
+            const empty = document.createElement("div");
+            empty.className = "stats-section";
+            empty.innerHTML = `<div class="no-data">Поки жодного завершеного уроку. Починай!</div>`;
+            root.appendChild(empty);
+        }
+    }
+
+    loadStats();
+    </script>
+</body>
+</html>

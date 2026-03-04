@@ -1,0 +1,65 @@
+{
+  "lesson": "System Design: кешування, rate limiting, CAP",
+  "questions": [
+    {
+      "id": 1,
+      "question": "Що таке LRU Cache і коли його евікція спрацьовує?",
+      "options": [
+        "Видаляє найстаріший запис за часом",
+        "Видаляє найменш нещодавно використаний елемент коли кеш переповнений",
+        "Видаляє найбільший за розміром елемент",
+        "Видаляє елементи з вичерпаним TTL"
+      ],
+      "answer": 1,
+      "explanation": "LRU = Least Recently Used. При `put` нового елементу коли capacity перевищено — видаляється той, що давно не використовувався."
+    },
+    {
+      "id": 2,
+      "question": "Яка різниця між Token Bucket та Sliding Window rate limiter?",
+      "options": [
+        "Немає різниці",
+        "Token Bucket — рівномірне поповнення токенів; Sliding Window — точний підрахунок запитів у вікні",
+        "Token Bucket тільки для HTTP",
+        "Sliding Window не підтримує burst"
+      ],
+      "answer": 1,
+      "explanation": "Token Bucket: дозволяє burst (якщо є токени). Sliding Window: точніший, рахує N запитів за останні T секунд."
+    },
+    {
+      "id": 3,
+      "question": "Що говорить CAP теорема?",
+      "options": [
+        "Distributed system may be Consistent, Available, and Partition-tolerant simultaneously",
+        "У розподіленій системі можна гарантувати лише 2 з 3: Consistency, Availability, Partition tolerance",
+        "CAP визначає мінімум 3 ноди для кластера",
+        "Consistency + Availability = Partition tolerance"
+      ],
+      "answer": 1,
+      "explanation": "CAP: при мережевому розподілі (P) — вибір між Consistency (всі читають актуальні дані) і Availability (система відповідає)."
+    },
+    {
+      "id": 4,
+      "question": "Яка різниця між ACID та BASE?",
+      "options": [
+        "Це синоніми",
+        "ACID — суворі гарантії транзакцій (SQL); BASE — eventual consistency для high availability (NoSQL)",
+        "BASE — новіший стандарт ACID",
+        "ACID тільки для PostgreSQL"
+      ],
+      "answer": 1,
+      "explanation": "ACID: Atomicity, Consistency, Isolation, Durability. BASE: Basically Available, Soft state, Eventually consistent."
+    },
+    {
+      "id": 5,
+      "question": "Навіщо `threading.Lock` при реалізації AtomicCounter?",
+      "options": [
+        "Прискорює лічильник",
+        "Запобігає race condition: read-modify-write не атомарна операція в Python без Lock",
+        "Дозволяє async доступ",
+        "Потрібен тільки для multiprocessing"
+      ],
+      "answer": 1,
+      "explanation": "`i += 1` → 3 операції: read i, add 1, write i. Без Lock два потоки можуть прочитати одне значення → втрата інкременту."
+    }
+  ]
+}

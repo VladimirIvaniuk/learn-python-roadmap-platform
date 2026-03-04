@@ -1,0 +1,65 @@
+{
+  "lesson": "Testing: pytest, fixtures, mocking, TDD",
+  "questions": [
+    {
+      "id": 1,
+      "question": "Що таке `@pytest.fixture` і як використовується?",
+      "options": [
+        "Декоратор для тестових функцій",
+        "Функція, що підготовляє стан для тесту і автоматично ін'єктується через параметри",
+        "Аналог setUp з unittest",
+        "Мок-об'єкт"
+      ],
+      "answer": 1,
+      "explanation": "Fixture = функція з `@pytest.fixture`. Pytest автоматично передає її результат у тест як параметр."
+    },
+    {
+      "id": 2,
+      "question": "Що робить `@pytest.mark.parametrize`?",
+      "options": [
+        "Запускає тест паралельно",
+        "Запускає один тест з різними наборами вхідних даних",
+        "Позначає тест як повільний",
+        "Вимикає тест"
+      ],
+      "answer": 1,
+      "explanation": "`@pytest.mark.parametrize('a,b', [(1,2),(3,4)])` → запустить тест двічі з різними значеннями."
+    },
+    {
+      "id": 3,
+      "question": "Яка різниця між `Mock` та `MagicMock`?",
+      "options": [
+        "Немає різниці",
+        "`MagicMock` автоматично підтримує dunder методи (__len__, __iter__, тощо)",
+        "`Mock` — для класів, `MagicMock` — для функцій",
+        "`MagicMock` повільніший"
+      ],
+      "answer": 1,
+      "explanation": "`MagicMock` pre-configures magic methods. `len(mock)` поверне 0; `mock.__iter__` підтримується автоматично."
+    },
+    {
+      "id": 4,
+      "question": "Що таке dependency override у FastAPI testing?",
+      "options": [
+        "Зміна маршрутів при тестуванні",
+        "Заміна залежності (Depends) на тестову версію через `app.dependency_overrides`",
+        "Мок для HTTP запитів",
+        "Відключення middleware"
+      ],
+      "answer": 1,
+      "explanation": "`app.dependency_overrides[get_db] = get_test_db` → тест використовує in-memory DB замість production."
+    },
+    {
+      "id": 5,
+      "question": "Яка перша дія у TDD (Test-Driven Development)?",
+      "options": [
+        "Написати код",
+        "Написати тест, що провалюється (RED)",
+        "Написати документацію",
+        "Зробити рефакторинг"
+      ],
+      "answer": 1,
+      "explanation": "TDD цикл: RED (тест провалюється) → GREEN (мінімальний код для проходження) → REFACTOR (покращення)."
+    }
+  ]
+}

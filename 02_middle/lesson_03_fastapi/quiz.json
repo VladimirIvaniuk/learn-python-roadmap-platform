@@ -1,0 +1,65 @@
+{
+  "lesson": "FastAPI: маршрути, Pydantic, Depends",
+  "questions": [
+    {
+      "id": 1,
+      "question": "Що таке `Depends` у FastAPI?",
+      "options": [
+        "Декоратор для визначення маршрутів",
+        "Механізм Dependency Injection — автоматично виконує функцію і передає результат у хендлер",
+        "Middleware для обробки запитів",
+        "Аліас для Optional у Pydantic"
+      ],
+      "answer": 1,
+      "explanation": "`Depends(get_db)` → FastAPI викличе `get_db()` і передасть результат. Підтримує ланцюги залежностей."
+    },
+    {
+      "id": 2,
+      "question": "Яка різниця між `@app.get` з `response_model` і без нього?",
+      "options": [
+        "Немає різниці",
+        "З `response_model` — FastAPI серіалізує відповідь за схемою і фільтрує зайві поля",
+        "`response_model` лише для документації",
+        "`response_model` обов'язковий для POST запитів"
+      ],
+      "answer": 1,
+      "explanation": "`response_model` валідує і серіалізує відповідь. Зайві поля прибираються. Також генерує схему в /docs."
+    },
+    {
+      "id": 3,
+      "question": "Що таке `@field_validator` у Pydantic v2?",
+      "options": [
+        "Декоратор для визначення полів",
+        "Функція-валідатор окремого поля, що запускається при валідації моделі",
+        "Замінює type hints",
+        "Для серіалізації в JSON"
+      ],
+      "answer": 1,
+      "explanation": "`@field_validator('field_name')` → метод класу, що валідує конкретне поле. Може трансформувати значення."
+    },
+    {
+      "id": 4,
+      "question": "Як FastAPI обробляє виключення `HTTPException`?",
+      "options": [
+        "Кидає 500 Internal Server Error",
+        "Повертає JSON відповідь з відповідним HTTP статусом і detail",
+        "Логує помилку і продовжує",
+        "Потребує явного try/except у кожному хендлері"
+      ],
+      "answer": 1,
+      "explanation": "FastAPI перехоплює `HTTPException` і повертає `{\"detail\": \"...\"}` з відповідним кодом (404, 422, тощо)."
+    },
+    {
+      "id": 5,
+      "question": "Навіщо `BackgroundTasks` у FastAPI?",
+      "options": [
+        "Для паралельних HTTP запитів",
+        "Виконує задачі після відправки відповіді клієнту (email, логи) без блокування",
+        "Замінює Celery",
+        "Для виконання синхронного коду в async хендлерах"
+      ],
+      "answer": 1,
+      "explanation": "`BackgroundTasks` → задача виконується після response. Ідеально для notification, logging без затримки відповіді."
+    }
+  ]
+}

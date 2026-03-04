@@ -1,0 +1,55 @@
+{
+  "lesson": "Функції, *args, **kwargs, декоратори",
+  "questions": [
+    {
+      "id": 1,
+      "question": "Яку проблему має цей код: `def add(a, b=[]): b.append(a); return b`?",
+      "options": [
+        "SyntaxError",
+        "Mutable default argument — список ділиться між викликами",
+        "TypeError при першому виклику",
+        "Нічого, код коректний"
+      ],
+      "answer": 1,
+      "explanation": "Mutable default argument — `[]` створюється один раз при визначенні функції, не при кожному виклику."
+    },
+    {
+      "id": 2,
+      "question": "Що виведе: `def f(*args): print(type(args))`?",
+      "options": ["<class 'list'>", "<class 'tuple'>", "<class 'dict'>", "<class 'set'>"],
+      "answer": 1,
+      "explanation": "`*args` завжди збирається у `tuple`, а не список."
+    },
+    {
+      "id": 3,
+      "question": "Що таке замикання (closure) у Python?",
+      "options": [
+        "Функція без параметрів",
+        "Функція з доступом до змінних зовнішнього scope після завершення зовнішньої функції",
+        "Декоратор, що закриває функцію",
+        "Клас з __call__"
+      ],
+      "answer": 1,
+      "explanation": "Closure — внутрішня функція, що 'запам'ятовує' змінні зовнішнього scope (free variables)."
+    },
+    {
+      "id": 4,
+      "question": "Навіщо використовують `@functools.wraps(func)` у декораторах?",
+      "options": [
+        "Для прискорення функції",
+        "Щоб зберегти __name__, __doc__ оригінальної функції",
+        "Щоб функцію можна було виликати кілька разів",
+        "Для кешування результатів"
+      ],
+      "answer": 1,
+      "explanation": "Без `@wraps` обгортка (`wrapper`) замінює метадані оригінальної функції (ім'я, документацію)."
+    },
+    {
+      "id": 5,
+      "question": "Яка область видимості (scope) є НАЙБЛИЖЧОЮ для пошуку змінної?",
+      "options": ["Global", "Enclosing", "Local", "Built-in"],
+      "answer": 2,
+      "explanation": "LEGB: Local → Enclosing → Global → Built-in. Пошук починається з Local (найближчий)."
+    }
+  ]
+}

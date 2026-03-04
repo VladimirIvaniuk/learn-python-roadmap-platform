@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Як стати профі — Learn Python</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <style>
+        .resources { max-width: 720px; margin: 2rem auto; padding: 0 1.5rem; }
+        .resources h1 { color: var(--accent); margin-bottom: 0.5rem; }
+        .resources h2 { margin-top: 2rem; font-size: 1.2rem; }
+        .resources table { width: 100%; border-collapse: collapse; margin: 1rem 0; }
+        .resources th, .resources td { padding: 0.5rem; border: 1px solid var(--border); text-align: left; }
+        .resources th { background: var(--bg-tertiary); }
+        .resources a { color: var(--accent); }
+        .resources ul { padding-left: 1.5rem; }
+        .resources li { margin: 0.5rem 0; }
+        .back { display: inline-block; margin-bottom: 1rem; color: var(--text-secondary); }
+    </style>
+</head>
+<body>
+    <div class="resources">
+        <a href="/" class="back">← Назад до курсів</a>
+        <h1>Як стати профі — глибше навчання</h1>
+        <p>Цей курс дає <strong>базу та структуру</strong>. Щоб стати справжнім профі, потрібно поглиблювати кожну тему окремо.</p>
+
+        <h2>Принцип 80/20</h2>
+        <ul>
+            <li><strong>20%</strong> — теорія з курсу (карта території)</li>
+            <li><strong>80%</strong> — практика: проєкти, задачі, читання чужого коду</li>
+        </ul>
+
+        <h2>Junior → глибше</h2>
+        <table>
+            <tr><th>Тема</th><th>Ресурс</th><th>Що дає</th></tr>
+            <tr><td>Python загалом</td><td><a href="https://realpython.com/" target="_blank">Real Python</a></td><td>Статті з прикладами</td></tr>
+            <tr><td>Задачі</td><td><a href="https://exercism.org/tracks/python" target="_blank">Exercism Python</a></td><td>100+ завдань з перевіркою</td></tr>
+            <tr><td>Книга</td><td>Fluent Python (O'Reilly)</td><td>Поглиблене розуміння</td></tr>
+        </table>
+
+        <h2>Middle → глибше</h2>
+        <table>
+            <tr><th>Тема</th><th>Ресурс</th><th>Що дає</th></tr>
+            <tr><td>FastAPI</td><td><a href="https://fastapi.tiangolo.com/" target="_blank">FastAPI docs</a></td><td>Офіційна документація</td></tr>
+            <tr><td>SQLAlchemy</td><td><a href="https://docs.sqlalchemy.org/" target="_blank">SQLAlchemy 2.0</a></td><td>ORM, async</td></tr>
+            <tr><td>Тестування</td><td><a href="https://docs.pytest.org/" target="_blank">pytest docs</a></td><td>Fixtures, parametrize</td></tr>
+        </table>
+
+        <h2>Senior → глибше</h2>
+        <table>
+            <tr><th>Тема</th><th>Ресурс</th><th>Що дає</th></tr>
+            <tr><td>Архітектура</td><td>Clean Architecture (Robert Martin)</td><td>SOLID, шари</td></tr>
+            <tr><td>Design Patterns</td><td>Design Patterns (GoF)</td><td>Класичні патерни</td></tr>
+            <tr><td>System Design</td><td><a href="https://github.com/donnemartin/system-design-primer" target="_blank">System Design Primer</a></td><td>Масштабування</td></tr>
+        </table>
+
+        <h2>Чек-лист "профі"</h2>
+        <ul>
+            <li><strong>Проєкт на GitHub</strong> — реальний застосунок (не туторіал)</li>
+            <li><strong>Code review</strong> — робити та отримувати</li>
+            <li><strong>Читати чужі репозиторії</strong> — Django, FastAPI, requests</li>
+            <li><strong>Писати тести</strong> — coverage > 80% на своїх проєктах</li>
+            <li><strong>Документація</strong> — README, docstrings, type hints</li>
+        </ul>
+
+        <a href="/" class="back">← Назад до курсів</a>
+    </div>
+</body>
+</html>

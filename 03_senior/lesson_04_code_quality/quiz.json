@@ -1,0 +1,65 @@
+{
+  "lesson": "Code Quality: mypy, ruff, pre-commit, рефакторинг",
+  "questions": [
+    {
+      "id": 1,
+      "question": "Що таке статична типізація і навіщо `mypy`?",
+      "options": [
+        "Перевірка типів під час виконання",
+        "Аналіз коду без запуску: виявляє помилки типів на стадії розробки",
+        "Автоматичне додавання анотацій",
+        "Прискорює Python через JIT"
+      ],
+      "answer": 1,
+      "explanation": "`mypy` аналізує анотації статично. Виявляє `str + int`, None dereference та інші помилки до запуску."
+    },
+    {
+      "id": 2,
+      "question": "Що таке Cyclomatic Complexity?",
+      "options": [
+        "Розмір файлу в рядках",
+        "Кількість незалежних шляхів виконання у функції (if, for, while, except, and, or)",
+        "Кількість залежностей модуля",
+        "Час виконання функції"
+      ],
+      "answer": 1,
+      "explanation": "CC = 1 + кількість branch точок. CC > 10 → складно тестувати. Рефакторинг: Guard Clauses, Extract Function."
+    },
+    {
+      "id": 3,
+      "question": "Навіщо `pre-commit` hooks?",
+      "options": [
+        "Для автоматичного deploy",
+        "Запускають linting/formatting до коміту — запобігають потраплянню поганого коду у репозиторій",
+        "Замінюють CI/CD",
+        "Для backup перед комітом"
+      ],
+      "answer": 1,
+      "explanation": "`pre-commit`: при `git commit` → автоматично ruff, mypy, tests. Блокує коміт при помилці. 'Shift left' підхід."
+    },
+    {
+      "id": 4,
+      "question": "Що таке Guard Clause і яку проблему вирішує?",
+      "options": [
+        "Блок try/except",
+        "Ранній return при невалідних умовах — замість глибокої вкладеності if",
+        "Валідація вхідних даних через Pydantic",
+        "Ін'єкція залежностей"
+      ],
+      "answer": 1,
+      "explanation": "Guard Clause: `if not valid: raise Error` на початку → замість `if valid: if auth: if stock:` = 3 рівні вкладеності."
+    },
+    {
+      "id": 5,
+      "question": "Яка різниця між `ruff check` та `ruff format`?",
+      "options": [
+        "Немає різниці",
+        "`ruff check` — linting (помилки, стиль); `ruff format` — форматування (відступи, пробіли)",
+        "`ruff format` перевіряє типи",
+        "`ruff check` форматує, `ruff format` — перевіряє"
+      ],
+      "answer": 1,
+      "explanation": "`ruff check` → знаходить та виправляє порушення правил (як flake8+pylint). `ruff format` → форматує (як black)."
+    }
+  ]
+}

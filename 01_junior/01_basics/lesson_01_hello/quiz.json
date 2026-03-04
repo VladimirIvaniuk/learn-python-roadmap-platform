@@ -1,0 +1,45 @@
+{
+  "lesson": "Перша програма. print, змінні, f-рядки",
+  "questions": [
+    {
+      "id": 1,
+      "question": "Що виведе: `print('Hello', 'World', sep='-')`?",
+      "options": ["Hello World", "Hello-World", "HelloWorld", "Hello, World"],
+      "answer": 1,
+      "explanation": "Параметр `sep` визначає роздільник між аргументами. За замовчуванням пробіл, але тут '-'."
+    },
+    {
+      "id": 2,
+      "question": "Яка угода PEP 8 для іменування змінних?",
+      "options": ["camelCase", "PascalCase", "snake_case", "UPPER_CASE"],
+      "answer": 2,
+      "explanation": "PEP 8 рекомендує snake_case для змінних і функцій у Python."
+    },
+    {
+      "id": 3,
+      "question": "Що виведе: `name = 'Іван'; print(f'{name!r}')`?",
+      "options": ["Іван", "'Іван'", "name", "f'{name!r}'"],
+      "answer": 1,
+      "explanation": "Conversion flag `!r` застосовує repr() до значення — додає лапки."
+    },
+    {
+      "id": 4,
+      "question": "Що станеться при виконанні: `x = input()` — потім `print(x + 1)`?",
+      "options": [
+        "Виведе введене число + 1",
+        "TypeError: можна лише рядки",
+        "SyntaxError",
+        "Виведе '11' якщо введено '1'"
+      ],
+      "answer": 1,
+      "explanation": "`input()` завжди повертає рядок. Додавання рядка і числа дає TypeError."
+    },
+    {
+      "id": 5,
+      "question": "Який результат: `print(f'{3.14159:.2f}')`?",
+      "options": ["3.14159", "3.14", "3.1", "3.142"],
+      "answer": 1,
+      "explanation": "`.2f` у форматному рядку означає 2 знаки після коми з округленням."
+    }
+  ]
+}

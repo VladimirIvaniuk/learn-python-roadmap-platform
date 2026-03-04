@@ -1,0 +1,65 @@
+{
+  "lesson": "Архітектура: SOLID, Clean Architecture, DI",
+  "questions": [
+    {
+      "id": 1,
+      "question": "Що порушує принцип SRP (Single Responsibility)?",
+      "options": [
+        "Клас без методів",
+        "Клас, що одночасно валідує дані, зберігає у БД і надсилає email",
+        "Клас з 10 методами",
+        "Використання успадкування"
+      ],
+      "answer": 1,
+      "explanation": "SRP: у класу має бути тільки одна причина змінюватися. Валідація + persistence + notification = 3 причини."
+    },
+    {
+      "id": 2,
+      "question": "Що означає Dependency Inversion Principle?",
+      "options": [
+        "Заборона на circular imports",
+        "Модулі вищого рівня не залежать від нижчого рівня — обидва залежать від абстракцій",
+        "Залежності ін'єктуються через конструктор",
+        "Використання тільки фабрик"
+      ],
+      "answer": 1,
+      "explanation": "DIP: `UserService` не знає про `PostgresUserRepo` — лише про `UserRepository` (Protocol/ABC)."
+    },
+    {
+      "id": 3,
+      "question": "Що таке Hexagonal Architecture (Ports & Adapters)?",
+      "options": [
+        "6-кутна структура папок",
+        "Архітектура де бізнес-логіка ізольована за допомогою портів (інтерфейсів) від зовнішнього світу",
+        "Мікросервісна архітектура з 6 сервісами",
+        "FastAPI специфічний патерн"
+      ],
+      "answer": 1,
+      "explanation": "Ports = інтерфейси (UserRepository). Adapters = конкретні реалізації (PostgresRepo, InMemoryRepo). Core не знає про frameworks."
+    },
+    {
+      "id": 4,
+      "question": "Яка проблема Liskov Substitution Principle (LSP) у прикладі: `Square extends Rectangle` де `setWidth` змінює і height?",
+      "options": [
+        "Немає проблеми",
+        "Square не може замінити Rectangle без порушення поведінки — порушення LSP",
+        "Порушення OCP",
+        "Порушення ISP"
+      ],
+      "answer": 1,
+      "explanation": "LSP: підклас має бути замінником батьківського класу. Square.setWidth(5) змінює обидва виміри — порушення контракту Rectangle."
+    },
+    {
+      "id": 5,
+      "question": "Навіщо DI Container?",
+      "options": [
+        "Прискорює роботу програми",
+        "Централізує конфігурацію залежностей і полегшує тестування через підміну реалізацій",
+        "Автоматично генерує код",
+        "Замінює фреймворк"
+      ],
+      "answer": 1,
+      "explanation": "Container: `repo = InMemoryRepo()`, `hasher = Bcrypt()` → `UserService(repo, hasher)`. При тестах підміняємо InMemoryRepo."
+    }
+  ]
+}

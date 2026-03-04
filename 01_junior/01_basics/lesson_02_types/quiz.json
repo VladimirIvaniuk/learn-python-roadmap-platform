@@ -1,0 +1,45 @@
+{
+  "lesson": "Типи даних: int, float, str, bool",
+  "questions": [
+    {
+      "id": 1,
+      "question": "Що поверне `type(True)`?",
+      "options": ["<class 'int'>", "<class 'bool'>", "<class 'str'>", "True"],
+      "answer": 1,
+      "explanation": "`bool` — це підклас `int`, але `type(True)` повертає саме `bool`."
+    },
+    {
+      "id": 2,
+      "question": "Що виведе `print(0.1 + 0.2 == 0.3)`?",
+      "options": ["True", "False", "Error", "None"],
+      "answer": 1,
+      "explanation": "Через представлення float у двійковій системі 0.1+0.2 = 0.30000000000000004 ≠ 0.3."
+    },
+    {
+      "id": 3,
+      "question": "Що поверне `'hello'.upper().replace('L', 'x')`?",
+      "options": ["HExxO", "HEllO", "HELLO", "hexlo"],
+      "answer": 0,
+      "explanation": "Спочатку `'hello'.upper()` → `'HELLO'`, потім `replace('L', 'x')` → `'HExxO'`."
+    },
+    {
+      "id": 4,
+      "question": "Які зі значень є **falsy** в Python?",
+      "options": [
+        "0, '', [], None, False",
+        "0, '', [], None, False, 0.0, {}, ()",
+        "тільки None і False",
+        "тільки 0 і ''"
+      ],
+      "answer": 1,
+      "explanation": "Усі порожні колекції, 0, 0.0, None, False і порожній рядок є falsy."
+    },
+    {
+      "id": 5,
+      "question": "Що поверне `int('3.14')`?",
+      "options": ["3", "3.14", "ValueError", "TypeError"],
+      "answer": 2,
+      "explanation": "`int()` не може конвертувати рядок з десятковою крапкою — потрібно `int(float('3.14'))`."
+    }
+  ]
+}

@@ -1,0 +1,65 @@
+{
+  "lesson": "DevOps: Docker, CI/CD, Makefile",
+  "questions": [
+    {
+      "id": 1,
+      "question": "Яка перевага multi-stage Docker builds?",
+      "options": [
+        "Прискорює час збірки",
+        "Зменшує розмір фінального образу — в нього не потрапляють build-залежності",
+        "Дозволяє запускати кілька сервісів",
+        "Замінює docker-compose"
+      ],
+      "answer": 1,
+      "explanation": "Stage 1: build (gcc, pip install). Stage 2: copy only artifacts. Результат — мінімальний образ без build tools."
+    },
+    {
+      "id": 2,
+      "question": "Навіщо використовують `HEALTHCHECK` у Dockerfile?",
+      "options": [
+        "Перевіряє правильність Dockerfile",
+        "Docker регулярно перевіряє стан контейнера і позначає unhealthy при відмові",
+        "Вмикає логування",
+        "Обмежує CPU контейнера"
+      ],
+      "answer": 1,
+      "explanation": "`HEALTHCHECK CMD curl /health` → Docker виконує команду. При невдачі: `unhealthy`. docker-compose `depends_on` це враховує."
+    },
+    {
+      "id": 3,
+      "question": "Що таке Conventional Commits і навіщо вони?",
+      "options": [
+        "Обов'язковий стандарт Git",
+        "Угода для структурованих повідомлень комітів: дозволяє генерувати changelog, семантичне версіонування",
+        "Інструмент для merge конфліктів",
+        "GitHub Actions специфікація"
+      ],
+      "answer": 1,
+      "explanation": "`feat:`, `fix:`, `chore:`, `docs:` → автоматичний changelog. `feat!:` = breaking change = major version bump."
+    },
+    {
+      "id": 4,
+      "question": "Яка різниця між `CMD` та `ENTRYPOINT` у Dockerfile?",
+      "options": [
+        "Немає різниці",
+        "`ENTRYPOINT` — незмінна команда; `CMD` — аргументи за замовчуванням, які можна перевизначити",
+        "`CMD` виконується першим",
+        "`ENTRYPOINT` тільки для shell команд"
+      ],
+      "answer": 1,
+      "explanation": "`ENTRYPOINT [\"uvicorn\"]` + `CMD [\"main:app\"]` → можна `docker run image main:app --port 9000`."
+    },
+    {
+      "id": 5,
+      "question": "Навіщо `pydantic-settings` замість os.environ?",
+      "options": [
+        "Пришвидшує завантаження конфігу",
+        "Типова валідація env змінних, .env файл, документація через схему, fail-fast при відсутніх змінних",
+        "Шифрує secrets",
+        "Тільки для FastAPI"
+      ],
+      "answer": 1,
+      "explanation": "`BaseSettings` читає env + .env, валідує типи, кидає виключення якщо обов'язкова змінна відсутня."
+    }
+  ]
+}

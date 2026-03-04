@@ -1,0 +1,65 @@
+{
+  "lesson": "SQLAlchemy 2.0: ORM, relationships, queries",
+  "questions": [
+    {
+      "id": 1,
+      "question": "Що таке N+1 проблема у ORM?",
+      "options": [
+        "Обмеження кількості з'єднань з базою",
+        "1 запит отримує N об'єктів, потім N окремих запитів для кожного зв'язку",
+        "Помилка при N одночасних транзакціях",
+        "Ліміт на кількість стовпців"
+      ],
+      "answer": 1,
+      "explanation": "N+1: `SELECT * FROM users` (1 запит) → для кожного user `SELECT * FROM posts WHERE user_id=?` (N запитів)."
+    },
+    {
+      "id": 2,
+      "question": "Як виправити N+1 у SQLAlchemy?",
+      "options": [
+        "Використати `lazy='dynamic'`",
+        "Використати `selectinload()` або `joinedload()` для eager loading",
+        "Збільшити розмір connection pool",
+        "Перейти на raw SQL"
+      ],
+      "answer": 1,
+      "explanation": "`selectinload` → SELECT IN (один запит для зв'язків). `joinedload` → JOIN (один SQL запит)."
+    },
+    {
+      "id": 3,
+      "question": "Яка різниця між `relationship(lazy='select')` та `lazy='joined'`?",
+      "options": [
+        "Немає різниці",
+        "'select' — завантажує при першому зверненні (окремий SELECT); 'joined' — завантажує разом через JOIN",
+        "'joined' повільніший у всіх випадках",
+        "'select' завантажує всі зв'язки одразу"
+      ],
+      "answer": 1,
+      "explanation": "`lazy='select'` (default) → додатковий SELECT при зверненні. `lazy='joined'` → JOIN у основному запиті."
+    },
+    {
+      "id": 4,
+      "question": "Що таке Alembic і для чого він потрібен?",
+      "options": [
+        "ORM для PostgreSQL",
+        "Інструмент міграцій схеми бази даних — відстежує зміни моделей і генерує SQL міграції",
+        "Замінює SQLAlchemy",
+        "Пул з'єднань для async"
+      ],
+      "answer": 1,
+      "explanation": "Alembic генерує `upgrade()`/`downgrade()` міграції при зміні моделей. `alembic revision --autogenerate`."
+    },
+    {
+      "id": 5,
+      "question": "Що таке `Mapped[int]` в SQLAlchemy 2.0?",
+      "options": [
+        "Звичайна Python анотація без особливого сенсу",
+        "Type-safe аннотація для стовпця, що дозволяє mypy перевіряти типи полів моделі",
+        "Аналог `Optional[int]`",
+        "Спеціальний тип для primary key"
+      ],
+      "answer": 1,
+      "explanation": "`Mapped[int]` + `mapped_column()` → SQLAlchemy 2.0 style. mypy/pyright розуміє типи. `Mapped[int | None]` = nullable."
+    }
+  ]
+}

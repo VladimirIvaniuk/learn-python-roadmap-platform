@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+.venv/
+*.egg-info/
+.eggs/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# Project specific
+.env
+*.db
+todos.txt
+output.txt
+notes.txt
+app.log
+learn_python.db
+
+# Frontend (Node/Vite)
+web/frontend/node_modules/
+web/frontend/dist/
+web/frontend/.vite/
+web/frontend/test-results/
+web/frontend/playwright-report/

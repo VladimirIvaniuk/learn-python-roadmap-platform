@@ -1,0 +1,65 @@
+{
+  "lesson": "Security: OWASP, JWT, SQL Injection, bcrypt",
+  "questions": [
+    {
+      "id": 1,
+      "question": "Чому не можна використовувати MD5 для хешування паролів?",
+      "options": [
+        "MD5 не підтримується Python",
+        "MD5 швидкий — можна перебрати мільярди хешів за секунду (brute force, rainbow tables)",
+        "MD5 не детермінований",
+        "MD5 повертає занадто довгий хеш"
+      ],
+      "answer": 1,
+      "explanation": "MD5 призначений для швидкості. bcrypt/Argon2 навмисно повільні (cost factor). 1000+ ітерацій = захист від brute force."
+    },
+    {
+      "id": 2,
+      "question": "Яка вразливість у SQL запиті: `f\"SELECT * FROM users WHERE name='{name}'\"`?",
+      "options": [
+        "Синтаксична помилка",
+        "SQL Injection — зловмисник може передати `' OR '1'='1` і отримати всі дані",
+        "Повільний запит",
+        "Занадто довгий рядок"
+      ],
+      "answer": 1,
+      "explanation": "f-string у SQL = SQL Injection. Використовуй parameterized queries: `WHERE name = ?` з `(name,)` як параметр."
+    },
+    {
+      "id": 3,
+      "question": "Чому JWT payload видимий будь-кому і що це означає для безпеки?",
+      "options": [
+        "JWT payload зашифрований",
+        "Base64-encoded payload легко декодувати — не зберігай секрети (паролі, ПІН) у payload",
+        "Payload доступний лише серверу",
+        "Payload захищений підписом"
+      ],
+      "answer": 1,
+      "explanation": "JWT = base64url(header).base64url(payload).signature. Підпис гарантує цілісність, не конфіденційність payload."
+    },
+    {
+      "id": 4,
+      "question": "Що таке SSRF (Server-Side Request Forgery)?",
+      "options": [
+        "SQL Injection через API",
+        "Атака, де сервер виконує HTTP запити на адресу вказану зловмисником (включно з internal services)",
+        "XSS через server-side rendering",
+        "Brute force атака на сервер"
+      ],
+      "answer": 1,
+      "explanation": "SSRF: якщо сервер завантажує URL з запиту → `http://169.254.169.254/metadata` (AWS metadata). Захист: whitelist доменів."
+    },
+    {
+      "id": 5,
+      "question": "Навіщо `secrets.compare_digest()` замість `==` при порівнянні токенів?",
+      "options": [
+        "Тільки для зручності",
+        "Захист від timing attack — `==` зупиняється при першому відмінному символі, `compare_digest` займає постійний час",
+        "`==` не працює для байтів",
+        "`compare_digest` швидший"
+      ],
+      "answer": 1,
+      "explanation": "Timing attack: вимірюючи час порівняння, зловмисник може вгадати символи токена. `compare_digest` має постійний час."
+    }
+  ]
+}

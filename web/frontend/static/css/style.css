@@ -1,0 +1,678 @@
+:root, [data-theme="dark"] {
+    --bg-primary: #0d1117;
+    --bg-secondary: #161b22;
+    --bg-tertiary: #21262d;
+    --text-primary: #e6edf3;
+    --text-secondary: #8b949e;
+    --accent: #58a6ff;
+    --accent-hover: #79b8ff;
+    --success: #3fb950;
+    --error: #f85149;
+    --border: #30363d;
+}
+
+[data-theme="light"] {
+    --bg-primary: #f6f8fa;
+    --bg-secondary: #ffffff;
+    --bg-tertiary: #eaeef2;
+    --text-primary: #1f2328;
+    --text-secondary: #656d76;
+    --accent: #0969da;
+    --accent-hover: #0550ae;
+    --success: #1a7f37;
+    --error: #cf222e;
+    --border: #d0d7de;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    line-height: 1.6;
+}
+
+.app {
+    display: flex;
+    min-height: 100vh;
+}
+
+/* Sidebar */
+.sidebar {
+    width: 280px;
+    min-width: 280px;
+    background: var(--bg-secondary);
+    border-right: 1px solid var(--border);
+    padding: 1.5rem;
+    flex-shrink: 0;
+    overflow-x: hidden;
+}
+
+.logo h1 {
+    margin: 0;
+    font-size: 1.25rem;
+    color: var(--accent);
+}
+
+.logo p {
+    margin: 0.25rem 0 1rem;
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+}
+
+.auth-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.auth-header #user-name {
+    flex: 1;
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.resources-link {
+    display: block;
+    font-size: 0.8rem;
+    color: var(--accent);
+    margin-bottom: 0.75rem;
+    text-decoration: none;
+}
+
+.resources-link:hover {
+    text-decoration: underline;
+}
+
+.level-tabs {
+    display: flex;
+    gap: 0.25rem;
+    margin-bottom: 1rem;
+}
+
+.level-tab {
+    flex: 1;
+    padding: 0.5rem;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-size: 0.8rem;
+    transition: all 0.2s;
+}
+
+.level-tab:hover {
+    color: var(--accent);
+}
+
+.level-tab.active {
+    background: var(--accent);
+    color: var(--bg-primary);
+    border-color: var(--accent);
+}
+
+.btn-small {
+    padding: 0.35rem 0.75rem;
+    font-size: 0.8rem;
+}
+
+.modules {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.module-btn {
+    display: block;
+    width: 100%;
+    padding: 0.75rem 1rem;
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text-primary);
+    text-align: left;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: background 0.2s;
+}
+
+.module-btn:hover {
+    background: var(--bg-tertiary);
+}
+
+.module-btn.active {
+    background: var(--accent);
+    color: var(--bg-primary);
+    border-color: var(--accent);
+}
+
+.lesson-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem 0.5rem 1.5rem;
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 0.85rem;
+    border-radius: 4px;
+    transition: all 0.2s;
+}
+
+.lesson-item:hover {
+    color: var(--accent);
+    background: var(--bg-tertiary);
+}
+
+.lesson-item.active {
+    color: var(--accent);
+    font-weight: 500;
+}
+
+.lesson-check {
+    width: 1.1rem;
+    height: 1.1rem;
+    flex-shrink: 0;
+    border: 2px solid var(--border);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.65rem;
+    color: transparent;
+    transition: all 0.2s;
+}
+
+.lesson-item.completed .lesson-check {
+    background: var(--success);
+    border-color: var(--success);
+    color: var(--bg-primary);
+}
+
+.lesson-item.completed .lesson-check::before {
+    content: "✓";
+}
+
+.lesson-list {
+    display: none;
+    margin-bottom: 0.5rem;
+}
+
+.lesson-list.open {
+    display: block;
+}
+
+/* Main content */
+.content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    padding: 1.5rem;
+}
+
+.lesson-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.lesson-header h2 {
+    margin: 0;
+    font-size: 1.5rem;
+}
+
+.progress {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+}
+
+.lesson-body {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    max-height: 40vh;
+    overflow-y: auto;
+}
+
+.lesson-body.fullscreen {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    max-height: none;
+    border-radius: 0;
+    display: flex;
+    flex-direction: column;
+    padding: 2rem 3rem;
+    background: var(--bg-primary);
+}
+
+.lesson-body.fullscreen .tabs {
+    flex-shrink: 0;
+}
+
+.lesson-body.fullscreen .tab-content.active {
+    flex: 1;
+    overflow-y: auto;
+    display: block;
+}
+
+.lesson-body.fullscreen .markdown-body {
+    font-size: 1.1rem;
+    max-width: 720px;
+    margin: 0 auto;
+}
+
+.lesson-body.fullscreen .markdown-body pre {
+    font-size: 0.95rem;
+}
+
+.lesson-body.fullscreen #example {
+    padding: 1rem 0;
+}
+
+.lesson-body.fullscreen #example pre {
+    font-size: 1rem;
+    max-width: 720px;
+    margin: 0 auto;
+}
+
+.lesson-body.fullscreen #btn-theory-fullscreen {
+    margin-left: auto;
+}
+
+.tabs {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.tab {
+    padding: 0.5rem 1rem;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+.tab:hover, .tab.active {
+    background: var(--accent);
+    color: var(--bg-primary);
+    border-color: var(--accent);
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+.markdown-body {
+    font-size: 0.95rem;
+}
+
+.markdown-body h1, .markdown-body h2, .markdown-body h3 {
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.markdown-body code {
+    background: var(--bg-tertiary);
+    padding: 0.2em 0.4em;
+    border-radius: 4px;
+    font-size: 0.9em;
+}
+
+.markdown-body pre {
+    background: var(--bg-tertiary);
+    padding: 1rem;
+    border-radius: 6px;
+    overflow-x: auto;
+}
+
+.markdown-body pre code {
+    padding: 0;
+    background: none;
+}
+
+.lesson-resources {
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border);
+}
+
+.lesson-resources h4 {
+    margin: 0 0 0.5rem;
+    font-size: 0.95rem;
+}
+
+.lesson-resources ul {
+    margin: 0;
+    padding-left: 1.25rem;
+}
+
+.lesson-resources a {
+    color: var(--accent);
+}
+
+.lesson-resources a:hover {
+    text-decoration: underline;
+}
+
+/* Editor */
+.editor-section {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 300px;
+}
+
+.editor-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.shortcut-hint {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    font-weight: normal;
+}
+
+.save-indicator {
+    margin-left: 0.5rem;
+    font-size: 0.75rem;
+    color: var(--success, #22c55e);
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.save-indicator.visible {
+    opacity: 1;
+}
+
+.editor-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.btn {
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+.btn-primary {
+    background: var(--accent);
+    color: var(--bg-primary);
+}
+
+.btn-primary:hover {
+    background: var(--accent-hover);
+}
+
+.btn-secondary {
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    border: 1px solid var(--border);
+}
+
+.btn-secondary:hover {
+    background: var(--border);
+}
+
+.editor-wrapper {
+    flex: 1;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.editor-wrapper .CodeMirror {
+    min-height: 200px;
+    font-size: 16px !important;
+    line-height: 1.6 !important;
+}
+
+.editor-wrapper .CodeMirror pre,
+.editor-wrapper .CodeMirror-linenumber {
+    font-size: 16px !important;
+}
+
+.editor-wrapper .CodeMirror-cursor {
+    border-left-color: #fff !important;
+    border-left-width: 2px !important;
+}
+
+#code-editor {
+    width: 100%;
+    height: 200px;
+    padding: 1rem;
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    border: none;
+    font-family: 'Monaco', 'Menlo', monospace;
+    font-size: 14px;
+    resize: vertical;
+}
+
+.output-section {
+    margin-top: 1rem;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1rem;
+}
+
+.output-header {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+}
+
+#output {
+    margin: 0;
+    font-family: monospace;
+    font-size: 0.9rem;
+    white-space: pre-wrap;
+    min-height: 60px;
+}
+
+#output.error {
+    color: var(--error);
+}
+
+.error-line {
+    background: rgba(248, 81, 73, 0.2) !important;
+}
+
+.check-result {
+    margin-top: 1rem;
+    padding: 1rem;
+    border-radius: 8px;
+    display: none;
+}
+
+.check-result.show {
+    display: block;
+}
+
+.check-result.passed {
+    background: rgba(63, 185, 80, 0.15);
+    border: 1px solid var(--success);
+    color: var(--success);
+}
+
+.check-result.failed {
+    background: rgba(248, 81, 73, 0.15);
+    border: 1px solid var(--error);
+    color: var(--error);
+}
+
+/* Lesson meta, streak */
+.lesson-meta {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    margin-top: 0.25rem;
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.streak {
+    font-size: 0.85rem;
+    padding: 0.25rem 0.5rem;
+    background: var(--bg-tertiary);
+    border-radius: 6px;
+}
+
+.top-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+    min-width: 0;
+}
+
+.top-actions .btn-small {
+    flex-shrink: 0;
+    padding: 0.35rem 0.5rem;
+    min-width: 2rem;
+}
+
+.search-input {
+    flex: 1;
+    min-width: 0;
+    padding: 0.4rem 0.75rem;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text-primary);
+    font-size: 0.9rem;
+}
+
+.search-input::placeholder {
+    color: var(--text-secondary);
+}
+
+.solution-panel {
+    margin-top: 1rem;
+    padding: 1rem;
+    background: var(--bg-tertiary);
+    border-radius: 8px;
+}
+
+.solution-panel pre {
+    margin: 0;
+    font-size: 0.85rem;
+    overflow-x: auto;
+}
+
+.modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.5rem;
+    max-width: 400px;
+}
+
+.modal-content h4 {
+    margin: 0 0 0.5rem;
+}
+
+.modal-content p {
+    margin: 0 0 1rem;
+}
+
+/* Timer */
+.timer {
+    font-size: 0.85rem;
+    padding: 0.25rem 0.6rem;
+    background: var(--bg-tertiary);
+    border-radius: 6px;
+    font-variant-numeric: tabular-nums;
+    color: var(--text-secondary);
+}
+
+/* Notes tab */
+.notes-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.5rem;
+}
+
+.notes-hint {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+.note-textarea {
+    width: 100%;
+    min-height: 180px;
+    padding: 0.75rem;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text-primary);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-size: 0.9rem;
+    line-height: 1.6;
+    resize: vertical;
+    outline: none;
+    box-sizing: border-box;
+}
+
+.note-textarea:focus {
+    border-color: var(--accent);
+}
+
+.note-textarea::placeholder {
+    color: var(--text-secondary);
+}
+
+/* Example tab load button */
+.example-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 0.5rem;
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+    .app { flex-direction: column; }
+    .sidebar { width: 100%; }
+    .lesson-header { flex-direction: column; align-items: flex-start; }
+    .editor-actions { flex-wrap: wrap; }
+}

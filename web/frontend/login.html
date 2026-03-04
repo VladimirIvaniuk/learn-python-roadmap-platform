@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Вхід — Learn Python</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/css/auth.css">
+</head>
+<body class="auth-page">
+    <div class="auth-container">
+        <h1>Learn Python</h1>
+        <p class="auth-subtitle">Від нуля до Senior</p>
+
+        <div class="auth-tabs">
+            <button class="auth-tab active" data-tab="login">Вхід</button>
+            <button class="auth-tab" data-tab="register">Реєстрація</button>
+        </div>
+
+        <form id="login-form" class="auth-form">
+            <input type="email" name="email" placeholder="Email" required>
+            <input type="password" name="password" placeholder="Пароль" required>
+            <button type="submit" class="btn btn-primary btn-block">Увійти</button>
+        </form>
+
+        <form id="register-form" class="auth-form" style="display:none">
+            <input type="email" name="email" placeholder="Email" required>
+            <input type="text" name="username" placeholder="Ім'я" required>
+            <input type="password" name="password" placeholder="Пароль" required minlength="6">
+            <button type="submit" class="btn btn-primary btn-block">Зареєструватися</button>
+        </form>
+
+        <p id="auth-error" class="auth-error"></p>
+        <a href="/" class="auth-link">← На головну</a>
+    </div>
+    <script src="/static/js/auth.js"></script>
+</body>
+</html>

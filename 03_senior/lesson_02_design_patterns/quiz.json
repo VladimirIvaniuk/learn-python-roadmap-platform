@@ -1,0 +1,65 @@
+{
+  "lesson": "Design Patterns: Factory, Builder, Observer, Strategy",
+  "questions": [
+    {
+      "id": 1,
+      "question": "Яка основна перевага Factory Method над прямим `SomeClass()`?",
+      "options": [
+        "Factory швидший",
+        "Відділяє код від конкретних класів — легко додати новий тип без зміни існуючого коду",
+        "Дозволяє кешування",
+        "Обмежує кількість екземплярів"
+      ],
+      "answer": 1,
+      "explanation": "Factory Method = OCP. `NotificationFactory.create('slack')` → нові канали додаємо в registry, не змінюємо create()."
+    },
+    {
+      "id": 2,
+      "question": "Коли використовувати патерн Builder?",
+      "options": [
+        "Коли об'єкт має 1-2 параметри",
+        "Коли конструктор має багато необов'язкових параметрів або складний процес побудови",
+        "Замість декораторів",
+        "Для singleton об'єктів"
+      ],
+      "answer": 1,
+      "explanation": "Builder вирішує 'telescoping constructor' проблему. `ResponseBuilder().status(201).json(data).header(...).build()`."
+    },
+    {
+      "id": 3,
+      "question": "Яка різниця між Strategy та Template Method?",
+      "options": [
+        "Немає різниці",
+        "Strategy — composition (делегування поведінки об'єкту), Template Method — inheritance (алгоритм у базовому класі)",
+        "Strategy тільки для сортування",
+        "Template Method для async коду"
+      ],
+      "answer": 1,
+      "explanation": "Strategy: `sorter.sort(arr, strategy=BubbleSort())`. Template Method: `AbstractSort.sort()` викликає `abstract compare()`."
+    },
+    {
+      "id": 4,
+      "question": "Що таке anti-pattern 'God Object'?",
+      "options": [
+        "Об'єкт без методів",
+        "Клас, що знає і робить надто багато — порушення SRP",
+        "Singleton з глобальним станом",
+        "Клас з надто довгими методами"
+      ],
+      "answer": 1,
+      "explanation": "God Object: один клас керує всім (UserManager: auth + db + email + validation + logging). Важко тестувати і змінювати."
+    },
+    {
+      "id": 5,
+      "question": "Патерн Observer і EventBus — яка різниця?",
+      "options": [
+        "Це синоніми",
+        "Observer — прямий зв'язок Subject→Observer; EventBus — через посередника, слабше зв'язування",
+        "EventBus тільки для async",
+        "Observer підтримує кілька подій, EventBus — одну"
+      ],
+      "answer": 1,
+      "explanation": "Observer: `subject.register(observer)`. EventBus: `bus.subscribe('event', handler)` — publisher не знає про subscribers."
+    }
+  ]
+}

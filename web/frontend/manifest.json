@@ -1,0 +1,9 @@
+{
+  "name": "Learn Python",
+  "short_name": "Learn Python",
+  "description": "Від нуля до Senior Developer",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0d1117",
+  "theme_color": "#58a6ff"
+}

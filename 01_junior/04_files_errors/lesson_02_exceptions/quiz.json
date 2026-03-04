@@ -1,0 +1,65 @@
+{
+  "lesson": "Виключення: try/except, raise, custom exceptions",
+  "questions": [
+    {
+      "id": 1,
+      "question": "Коли виконується блок `else` у `try/except/else`?",
+      "options": [
+        "Завжди",
+        "Лише якщо виключення НЕ виникло",
+        "Лише якщо виключення виникло",
+        "Після `finally`"
+      ],
+      "answer": 1,
+      "explanation": "`else` у try/except — код після try якщо не було виключень. `finally` виконується завжди."
+    },
+    {
+      "id": 2,
+      "question": "Що поверне `except (ValueError, TypeError) as e`: — де `e`?",
+      "options": [
+        "Список виключень",
+        "Перехоплений екземпляр виключення",
+        "Рядок з повідомленням",
+        "Тип виключення"
+      ],
+      "answer": 1,
+      "explanation": "`as e` прив'язує екземпляр виключення. `str(e)` — повідомлення, `type(e)` — тип."
+    },
+    {
+      "id": 3,
+      "question": "Як правильно визначити власне виключення?",
+      "options": [
+        "class MyError: pass",
+        "class MyError(Exception): pass",
+        "def MyError(Exception): raise",
+        "exception MyError(ValueError)"
+      ],
+      "answer": 1,
+      "explanation": "Власні виключення повинні успадковувати `Exception` (або більш специфічні класи, напр. `ValueError`)."
+    },
+    {
+      "id": 4,
+      "question": "Яка різниця між `raise` та `raise from`?",
+      "options": [
+        "Немає різниці",
+        "`raise from` зберігає ланцюг виключень (exception chaining), `raise` — ні",
+        "`raise from` не зберігає трасування",
+        "`raise` використовується тільки для re-raise"
+      ],
+      "answer": 1,
+      "explanation": "`raise NewError() from original` → зберігає `__cause__`. При `raise ... from None` приховує оригінал."
+    },
+    {
+      "id": 5,
+      "question": "Що таке `ExceptionGroup` (Python 3.11+)?",
+      "options": [
+        "Спосіб перехопити кілька типів виключень одночасно",
+        "Контейнер для декількох виключень, що виникли одночасно (напр. asyncio)",
+        "Список всіх виключень Python",
+        "Аналог try/except з кількома блоками"
+      ],
+      "answer": 1,
+      "explanation": "`ExceptionGroup` дозволяє групувати і піднімати кілька виключень одразу. Обробляється через `except*`."
+    }
+  ]
+}

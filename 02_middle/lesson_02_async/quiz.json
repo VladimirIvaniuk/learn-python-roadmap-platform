@@ -1,0 +1,65 @@
+{
+  "lesson": "Асинхронне програмування: asyncio",
+  "questions": [
+    {
+      "id": 1,
+      "question": "Яка різниця між `asyncio.gather()` та `asyncio.create_task()`?",
+      "options": [
+        "Немає різниці",
+        "`gather` запускає корутини і чекає всіх; `create_task` планує виконання у фоні",
+        "`create_task` блокує виконання, `gather` — ні",
+        "`gather` тільки для CPU-bound задач"
+      ],
+      "answer": 1,
+      "explanation": "`gather` зручний для паралельного запуску і очікування. `create_task` → task запускається без await."
+    },
+    {
+      "id": 2,
+      "question": "Що таке GIL і як він впливає на asyncio?",
+      "options": [
+        "GIL блокує asyncio повністю",
+        "GIL не впливає на asyncio — event loop переключається між корутинами без threading",
+        "asyncio обходить GIL через multiprocessing",
+        "GIL відключається при використанні async/await"
+      ],
+      "answer": 1,
+      "explanation": "asyncio — однопотоковий, кооперативний. GIL не проблема. Для CPU-bound — multiprocessing або ProcessPoolExecutor."
+    },
+    {
+      "id": 3,
+      "question": "Навіщо `asyncio.Semaphore`?",
+      "options": [
+        "Для синхронізації потоків",
+        "Обмежує кількість одночасно виконуваних корутин",
+        "Замінює asyncio.Lock",
+        "Збільшує швидкість I/O"
+      ],
+      "answer": 1,
+      "explanation": "`Semaphore(n)` дозволяє максимум n корутинам одночасно перебувати в `async with sem`. Для rate limiting."
+    },
+    {
+      "id": 4,
+      "question": "Що відбудеться якщо викликати блокуючу функцію `time.sleep(5)` у корутині?",
+      "options": [
+        "Нічого особливого — asyncio обробить це",
+        "Заблокує весь event loop на 5 секунд",
+        "Виникне RuntimeError",
+        "Буде виконано у окремому потоці"
+      ],
+      "answer": 1,
+      "explanation": "`time.sleep` блокує thread → блокує весь event loop. Потрібно `await asyncio.sleep(5)`."
+    },
+    {
+      "id": 5,
+      "question": "Яке призначення `asyncio.TaskGroup` (Python 3.11+)?",
+      "options": [
+        "Замінює asyncio.gather",
+        "Структурований конкурентний запуск задач з автоматичним скасуванням при помилці",
+        "Обмежує кількість задач",
+        "Синхронізує результати задач"
+      ],
+      "answer": 1,
+      "explanation": "TaskGroup: якщо одна задача кидає виключення — інші скасовуються. Чистіший код ніж gather з обробкою помилок."
+    }
+  ]
+}
