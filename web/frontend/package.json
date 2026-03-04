@@ -27,7 +27,7 @@
   "devDependencies": {
     "@playwright/test": "^1.54.1",
     "@tailwindcss/postcss": "^4.2.1",
-    "@vitejs/plugin-vue": "^5.0.4",
+    "@vitejs/plugin-vue": "^6.0.4",
     "autoprefixer": "^10.4.27",
     "postcss": "^8.5.8",
     "tailwindcss": "^4.2.1",
