@@ -131,9 +131,9 @@ watch(compactMode, (enabled) => {
     </div>
 
     <div class="auth-header">
-      <span class="user-name">{{ auth.user?.username || auth.user?.email || messages.sidebar.guest }}</span>
-      <RouterLink v-if="!auth.isLoggedIn" to="/login" class="btn btn-small">{{ messages.sidebar.login }}</RouterLink>
-      <button v-else class="btn btn-small" @click="handleLogout">{{ messages.sidebar.logout }}</button>
+      <span class="user-name" data-testid="sidebar-user-name">{{ auth.user?.username || auth.user?.email || messages.sidebar.guest }}</span>
+      <RouterLink v-if="!auth.isLoggedIn" to="/login" class="btn btn-small" data-testid="sidebar-login-link">{{ messages.sidebar.login }}</RouterLink>
+      <button v-else class="btn btn-small" data-testid="sidebar-logout-button" @click="handleLogout">{{ messages.sidebar.logout }}</button>
     </div>
 
     <div class="quick-links">
@@ -152,7 +152,7 @@ watch(compactMode, (enabled) => {
       />
       <button class="btn btn-small" :title="messages.sidebar.toggleTheme" @click="toggleTheme">🌓</button>
       <button class="btn btn-small" :title="messages.sidebar.exportProgress" @click="exportProgress">📥</button>
-      <button class="btn btn-small" :title="messages.common.languageToggleTitle" @click="toggleLanguage">
+      <button class="btn btn-small" data-testid="language-toggle" :title="messages.common.languageToggleTitle" @click="toggleLanguage">
         {{ language === 'uk' ? 'UA' : 'EN' }}
       </button>
       <button
