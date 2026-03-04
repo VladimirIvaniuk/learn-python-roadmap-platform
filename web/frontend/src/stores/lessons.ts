@@ -29,6 +29,17 @@ export interface ModuleData {
   lessons: LessonItem[]
 }
 
+export interface SearchLessonItem {
+  module_id: string
+  lesson_id: string
+  title: string
+  level: string
+  difficulty: string
+  time_text: string
+  time_minutes: number
+  topics: string[]
+}
+
 export const useLessonsStore = defineStore('lessons', () => {
   const auth = useAuthStore()
 
@@ -98,6 +109,25 @@ export const useLessonsStore = defineStore('lessons', () => {
     })
   }
 
+  async function searchLessons(params: {
+    q?: string
+    level?: string
+    difficulty?: string
+    topic?: string
+    maxTime?: number
+  }): Promise<SearchLessonItem[]> {
+    const query = new URLSearchParams()
+    if (params.q?.trim()) query.set('q', params.q.trim())
+    if (params.level && params.level !== 'all') query.set('level', params.level)
+    if (params.difficulty && params.difficulty !== 'all') query.set('difficulty', params.difficulty)
+    if (params.topic?.trim()) query.set('topic', params.topic.trim())
+    if (params.maxTime && params.maxTime > 0) query.set('max_time', String(params.maxTime))
+    const suffix = query.toString()
+    const res = await fetch(`/api/lessons/search${suffix ? `?${suffix}` : ''}`)
+    const data = await res.json()
+    return data.items || []
+  }
+
   return {
     levelsData,
     currentContent,
@@ -111,5 +141,6 @@ export const useLessonsStore = defineStore('lessons', () => {
     loadSolution,
     getNote,
     saveNote,
+    searchLessons,
   }
 })

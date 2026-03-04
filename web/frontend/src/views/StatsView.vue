@@ -36,22 +36,30 @@ const { messages } = useUiLanguage()
 const ui = computed(() => messages.value.terms)
 const text = computed(() => messages.value.stats)
 
-onMounted(async () => {
-  if (!auth.isLoggedIn) {
-    router.push('/login')
-    return
-  }
+async function loadStatsData() {
+  loading.value = true
+  error.value = ''
+  stats.value = null
+  adaptive.value = null
   try {
     const res = await fetch('/api/stats', { headers: auth.authHeaders() })
     if (!res.ok) throw new Error('HTTP ' + res.status)
     stats.value = await res.json()
     const adaptiveRes = await fetch('/api/adaptive/summary', { headers: auth.authHeaders() })
     if (adaptiveRes.ok) adaptive.value = await adaptiveRes.json()
-  } catch (e: unknown) {
-    error.value = messages.value.errors.statsLoadPrefix + String(e)
+  } catch {
+    error.value = text.value.loadFailed
   } finally {
     loading.value = false
   }
+}
+
+onMounted(async () => {
+  if (!auth.isLoggedIn) {
+    router.push('/login')
+    return
+  }
+  await loadStatsData()
 })
 
 const totalPercent = computed(() => {
@@ -138,7 +146,10 @@ function levelLabel(level: string): string {
       <div v-if="loading" style="color: var(--text-secondary); text-align: center; padding: 3rem;">
         {{ messages.status.loading }}
       </div>
-      <div v-else-if="error" style="color: var(--error); padding: 1rem;">{{ error }}</div>
+      <div v-else-if="error" class="inline-error-row" style="margin: 0 0 1rem 0;">
+        <span>{{ error }} {{ messages.status.genericRetryHint }}</span>
+        <button class="btn btn-small" @click="loadStatsData">{{ messages.common.retry }}</button>
+      </div>
 
       <template v-else-if="stats">
         <!-- Summary cards -->
