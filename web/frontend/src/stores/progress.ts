@@ -56,10 +56,12 @@ export const useProgressStore = defineStore('progress', () => {
       total.value = data.total || 0
       byLevel.value = data.by_level || {}
       if (auth.isLoggedIn) await loadAdaptiveSummary()
+      return true
     } catch {
       completed.value = JSON.parse(
         localStorage.getItem('learn_python_completed') || '[]'
       )
+      return false
     }
   }
 
@@ -78,21 +80,25 @@ export const useProgressStore = defineStore('progress', () => {
       skillMap.value = data.skill_map || {}
       skillLessonMatrix.value = data.skill_lesson_matrix || {}
       quests.value = data.quests || { daily: [], weekly: [] }
+      return true
     } catch {
       // non-critical
+      return false
     }
   }
 
   async function loadReviewQueue() {
-    if (!auth.isLoggedIn) return
+    if (!auth.isLoggedIn) return false
     try {
       const res = await fetch('/api/review/queue', { headers: auth.authHeaders() })
-      if (!res.ok) return
+      if (!res.ok) return false
       const data = await res.json()
       reviewsDue.value = data.items || []
       reviewsDueCount.value = reviewsDue.value.filter(i => i.overdue).length
+      return true
     } catch {
       // non-critical
+      return false
     }
   }
 
@@ -120,13 +126,15 @@ export const useProgressStore = defineStore('progress', () => {
   }
 
   async function loadWeeklyPlan() {
-    if (!auth.isLoggedIn) return
+    if (!auth.isLoggedIn) return false
     try {
       const res = await fetch('/api/plan/weekly', { headers: auth.authHeaders() })
-      if (!res.ok) return
+      if (!res.ok) return false
       weeklyPlan.value = await res.json()
+      return true
     } catch {
       // non-critical
+      return false
     }
   }
 

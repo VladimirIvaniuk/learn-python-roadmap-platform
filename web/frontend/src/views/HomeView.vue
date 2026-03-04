@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, watch, computed, onBeforeUnmount, onMounted, onUnmounted } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import AppSidebar from '../components/AppSidebar.vue'
 import LessonBody from '../components/LessonBody.vue'
 import CodeEditor from '../components/CodeEditor.vue'
@@ -23,6 +23,7 @@ type DebugInfo = {
 }
 
 const route = useRoute()
+const router = useRouter()
 const lessons = useLessonsStore()
 const progress = useProgressStore()
 const auth = useAuthStore()
@@ -40,6 +41,15 @@ const checkResult = ref<{
 } | null>(null)
 const runDebug = ref<DebugInfo | null>(null)
 const checkGamification = ref<{ xp: number; level: number; badges: string[] } | null>(null)
+const attemptHistory = ref<Array<{
+  module_id: string
+  lesson_id: string
+  passed: boolean
+  error_type?: string
+  weak_topics?: string[]
+  feedback?: string
+  created_at?: string | null
+}>>([])
 const feedbackMode = ref<'brief' | 'detailed'>((localStorage.getItem('learn_python_feedback_mode') as 'brief' | 'detailed') || 'brief')
 const running = ref(false)
 const hintOpen = ref(false)
@@ -47,6 +57,7 @@ const hintIndex = ref(0)
 const leftPaneWidth = ref<number>(52)
 const isResizingSplit = ref(false)
 const outputCollapsed = ref(false)
+const lessonLoadError = ref('')
 const zenMode = ref(false)
 const editorFullscreen = ref(false)
 const readableMode = ref(false)
@@ -68,25 +79,45 @@ watch(
   () => [route.params.moduleId as string, route.params.lessonId as string] as const,
   async ([moduleId, lessonId]) => {
     if (!moduleId || !lessonId) return
+    localStorage.setItem('learn_python_last_lesson_path', `/lesson/${moduleId}/${lessonId}`)
 
-    if (lessons.currentModule && lessons.currentLesson) {
-      await timer.flush(lessons.currentModule, lessons.currentLesson)
+    try {
+      lessonLoadError.value = ''
+      if (lessons.currentModule && lessons.currentLesson) {
+        await timer.flush(lessons.currentModule, lessons.currentLesson)
+      }
+      await saveDraft()
+
+      await lessons.loadLesson(moduleId, lessonId)
+      hintIndex.value = 0
+      checkResult.value = null
+      checkGamification.value = null
+      output.value = ''
+      outputError.value = false
+      runDebug.value = null
+
+      code.value = await loadDraft(moduleId, lessonId)
+      await loadAttemptHistory(moduleId, lessonId)
+      timer.start()
+    } catch {
+      lessonLoadError.value = text.value.lessonLoadFailed
     }
-    await saveDraft()
-
-    await lessons.loadLesson(moduleId, lessonId)
-    hintIndex.value = 0
-    checkResult.value = null
-    checkGamification.value = null
-    output.value = ''
-    outputError.value = false
-    runDebug.value = null
-
-    code.value = await loadDraft(moduleId, lessonId)
-    timer.start()
   },
   { immediate: true }
 )
+
+async function retryLessonLoad() {
+  const moduleId = route.params.moduleId as string
+  const lessonId = route.params.lessonId as string
+  if (!moduleId || !lessonId) return
+  try {
+    lessonLoadError.value = ''
+    await lessons.loadLesson(moduleId, lessonId)
+    code.value = await loadDraft(moduleId, lessonId)
+  } catch {
+    lessonLoadError.value = text.value.lessonLoadFailed
+  }
+}
 
 // ── Draft helpers ────────────────────────────────────────────────────────────
 
@@ -273,6 +304,9 @@ async function checkCode() {
     const data = await res.json()
     checkResult.value = data
     checkGamification.value = data.gamification || null
+    if (lessons.currentModule && lessons.currentLesson && auth.isLoggedIn) {
+      await loadAttemptHistory(lessons.currentModule, lessons.currentLesson)
+    }
     if (data.passed && lessons.currentModule && lessons.currentLesson) {
       const spent = timer.elapsed.value
       timer.reset()
@@ -284,6 +318,23 @@ async function checkCode() {
     checkResult.value = { passed: false, message: messages.value.errors.network, details: [String(err)] }
   } finally {
     running.value = false
+  }
+}
+
+async function loadAttemptHistory(moduleId: string, lessonId: string) {
+  if (!auth.isLoggedIn) {
+    attemptHistory.value = []
+    return
+  }
+  try {
+    const res = await fetch(`/api/attempts?module_id=${moduleId}&lesson_id=${lessonId}&limit=5`, {
+      headers: auth.authHeaders(),
+    })
+    if (!res.ok) return
+    const data = await res.json()
+    attemptHistory.value = data.items || []
+  } catch {
+    // non-critical
   }
 }
 
@@ -339,6 +390,37 @@ const metaText = computed(() => {
   }
   return [diff[meta.difficulty], meta.time].filter(Boolean).join(' · ')
 })
+
+const hasReviewQueue = computed(() => progress.reviewsDueCount > 0)
+const localNextLessonId = computed(() => lessons.currentContent?.meta?.next || null)
+const hasAdaptiveNext = computed(() => auth.isLoggedIn && !!progress.nextLesson)
+const canGoToAnyNext = computed(() => {
+  if (hasAdaptiveNext.value) return true
+  return !!(lessons.currentModule && localNextLessonId.value)
+})
+const nextStepReason = computed(() => {
+  if (hasAdaptiveNext.value && progress.nextLesson?.reason) return progress.nextLesson.reason
+  if (localNextLessonId.value) return text.value.nextStepDefaultReason
+  return ''
+})
+
+function goToNextStep() {
+  if (hasAdaptiveNext.value && progress.nextLesson) {
+    router.push(`/lesson/${progress.nextLesson.module_id}/${progress.nextLesson.lesson_id}`)
+    return
+  }
+  if (lessons.currentModule && localNextLessonId.value) {
+    router.push(`/lesson/${lessons.currentModule}/${localNextLessonId.value}`)
+  }
+}
+
+function goToPlan() {
+  router.push('/plan')
+}
+
+function goToReview() {
+  router.push('/review')
+}
 
 const isCurrentCompleted = computed(() =>
   lessons.currentModule && lessons.currentLesson
@@ -454,6 +536,43 @@ window.addEventListener('beforeunload', () => {
           <span v-if="lessons.currentLesson" class="timer">⏱ {{ timer.display }}</span>
           <span v-if="progress.streak" class="streak">🔥 {{ progress.streak }}</span>
           <span>{{ progress.completed.length }}/{{ progress.total }}</span>
+        </div>
+      </div>
+      <div v-if="lessonLoadError" class="inline-error-row" style="margin: .5rem .8rem 0 .8rem;">
+        <span>{{ lessonLoadError }} {{ messages.status.genericRetryHint }}</span>
+        <button class="btn btn-small" data-testid="retry-load-lesson" @click="retryLessonLoad">{{ messages.common.retry }}</button>
+      </div>
+
+      <div v-if="lessons.currentLesson" class="next-step-bar">
+        <div class="next-step-info">
+          <strong>{{ text.nextStepTitle }}</strong>
+          <small v-if="nextStepReason">{{ text.nextStepReason }}: {{ nextStepReason }}</small>
+        </div>
+        <div class="next-step-actions">
+          <button
+            class="btn btn-primary btn-small"
+            data-testid="next-step-primary"
+            :disabled="!canGoToAnyNext"
+            @click="goToNextStep"
+          >
+            {{ text.nextLesson }}
+          </button>
+          <button
+            class="btn btn-small"
+            data-testid="next-step-plan"
+            :disabled="!auth.isLoggedIn"
+            @click="goToPlan"
+          >
+            {{ text.toPlan }}
+          </button>
+          <button
+            class="btn btn-small"
+            data-testid="next-step-review"
+            :disabled="!auth.isLoggedIn || !hasReviewQueue"
+            @click="goToReview"
+          >
+            {{ text.toReview }}
+          </button>
         </div>
       </div>
 
@@ -681,6 +800,21 @@ window.addEventListener('beforeunload', () => {
                 XP: {{ checkGamification.xp }} · {{ terms.level }}: {{ checkGamification.level }}
               </div>
             </div>
+          </div>
+
+          <div v-if="attemptHistory.length" class="attempt-history">
+            <details>
+              <summary>{{ text.recentAttempts }} ({{ attemptHistory.length }})</summary>
+              <div class="attempt-history-list">
+                <div v-for="(item, idx) in attemptHistory" :key="`${item.created_at || idx}`" class="attempt-history-item">
+                  <strong>{{ item.passed ? text.attemptPassed : text.attemptFailed }}</strong>
+                  <span v-if="item.error_type"> · {{ item.error_type }}</span>
+                  <span v-if="item.created_at"> · {{ new Date(item.created_at).toLocaleString('uk-UA') }}</span>
+                  <div v-if="item.weak_topics?.length" class="resource-desc">{{ text.weakTopics }} {{ item.weak_topics.join(', ') }}</div>
+                  <div v-if="item.feedback" class="resource-desc">{{ item.feedback }}</div>
+                </div>
+              </div>
+            </details>
           </div>
 
           <div v-if="lessons.solution">

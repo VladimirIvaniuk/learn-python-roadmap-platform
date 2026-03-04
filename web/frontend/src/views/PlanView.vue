@@ -10,6 +10,7 @@ const progress = useProgressStore()
 const router = useRouter()
 const loading = ref(true)
 const busyKey = ref('')
+const error = ref('')
 type PlanAction = { planDate: string; taskKey: string; action: 'done' | 'skip' | 'snooze' }
 const actionHistory = ref<PlanAction[]>([])
 const HISTORY_STORAGE_KEY = 'learn_python_plan_undo_history'
@@ -27,7 +28,8 @@ onMounted(async () => {
     router.push('/login')
     return
   }
-  await progress.loadWeeklyPlan()
+  const ok = await progress.loadWeeklyPlan()
+  if (!ok) error.value = text.value.loadFailed
   try {
     const raw = localStorage.getItem(HISTORY_STORAGE_KEY)
     if (raw) {
@@ -41,6 +43,14 @@ onMounted(async () => {
   }
   loading.value = false
 })
+
+async function retryLoad() {
+  loading.value = true
+  error.value = ''
+  const ok = await progress.loadWeeklyPlan()
+  if (!ok) error.value = text.value.loadFailed
+  loading.value = false
+}
 
 watch(
   actionHistory,
@@ -70,10 +80,13 @@ async function doAction(dayDate: string, task: Record<string, unknown>, action: 
   const taskKey = String(task.task_key || '')
   if (!taskKey) return
   busyKey.value = `${dayDate}/${taskKey}/${action}`
+  error.value = ''
   const ok = await progress.planTaskAction(dayDate, taskKey, action)
   if (ok) {
     actionHistory.value.unshift({ planDate: dayDate, taskKey, action })
     actionHistory.value = actionHistory.value.slice(0, 5)
+  } else {
+    error.value = text.value.actionFailed
   }
   busyKey.value = ''
 }
@@ -83,8 +96,10 @@ async function undoLastAction() {
   if (!lastAction) return
   const { planDate, taskKey } = lastAction
   busyKey.value = `${planDate}/${taskKey}/pending`
+  error.value = ''
   const ok = await progress.planTaskAction(planDate, taskKey, 'pending')
   if (ok) actionHistory.value.shift()
+  if (!ok) error.value = text.value.actionFailed
   busyKey.value = ''
 }
 
@@ -103,7 +118,14 @@ function clearHistory() {
       <p class="subtitle">{{ text.subtitle }}</p>
 
       <div v-if="loading" style="color: var(--text-secondary);">{{ messages.status.loading }}</div>
+      <div v-else-if="error && !progress.weeklyPlan" class="inline-error-row">
+        <span>{{ error }} {{ messages.status.genericRetryHint }}</span>
+        <button class="btn btn-small" @click="retryLoad">{{ messages.common.retry }}</button>
+      </div>
       <template v-else-if="progress.weeklyPlan">
+        <div v-if="error" class="inline-error-row" style="margin-bottom:.55rem;">
+          <span>{{ error }}</span>
+        </div>
         <div style="margin-bottom: .8rem; color: var(--text-secondary); font-size: .85rem;">
           {{ text.mode }} <strong>{{ messages.common.goalPresets[progress.weeklyPlan.preset as 'easy' | 'balanced' | 'intensive' | 'weekend'] || progress.weeklyPlan.preset }}</strong> · {{ text.generatedAt }}
           {{ new Date(progress.weeklyPlan.generated_at).toLocaleString('uk-UA') }}

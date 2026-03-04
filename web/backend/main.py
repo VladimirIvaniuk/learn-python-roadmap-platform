@@ -11,7 +11,7 @@ from pathlib import Path
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 
-from fastapi import FastAPI, HTTPException, Depends, Header, Request
+from fastapi import FastAPI, HTTPException, Depends, Header, Request, Query
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from pydantic import BaseModel, EmailStr, field_validator
@@ -993,6 +993,23 @@ def get_lesson_path(module_id: str, lesson_id: str) -> Path:
     return BASE_DIR / module_path / lesson_id
 
 
+def _parse_lesson_minutes(time_text: str | None) -> int:
+    if not time_text:
+        return 20
+    import re as _re
+    m = _re.search(r"(\d+)", time_text)
+    if not m:
+        return 20
+    return int(m.group(1))
+
+
+def _lesson_level_by_module(module_id: str) -> str:
+    for level_id, level_cfg in LEVELS_CONFIG.items():
+        if module_id in level_cfg["modules"]:
+            return level_id
+    return "unknown"
+
+
 def read_file_safe(path: Path) -> str:
     """Читає файл або повертає порожній рядок."""
     if path.exists():
@@ -1174,6 +1191,56 @@ def get_levels():
             ],
         }
     return result
+
+
+@app.get("/api/lessons/search")
+def search_lessons(
+    q: str = Query("", description="Search by lesson title/id"),
+    level: str = Query("all", description="junior|middle|senior|all"),
+    difficulty: str = Query("all", description="easy|medium|hard|all"),
+    topic: str = Query("", description="Topic contains match"),
+    max_time: int = Query(0, description="Max lesson time in minutes"),
+):
+    q_l = q.strip().lower()
+    topic_l = topic.strip().lower()
+    level_l = level.strip().lower()
+    difficulty_l = difficulty.strip().lower()
+    items: list[dict] = []
+
+    for level_id, level_cfg in LEVELS_CONFIG.items():
+        if level_l not in {"all", level_id}:
+            continue
+        for module_id in level_cfg["modules"]:
+            for lesson_id, title in LESSONS_CONFIG[module_id]["lessons"]:
+                meta = LESSON_META.get(lesson_id, {"difficulty": "medium", "time": "20 хв"})
+                lesson_difficulty = str(meta.get("difficulty", "medium"))
+                time_text = str(meta.get("time", "20 хв"))
+                minutes = _parse_lesson_minutes(time_text)
+                topics = LESSON_TOPIC_MAP.get(lesson_id, [])
+
+                if difficulty_l not in {"all", lesson_difficulty}:
+                    continue
+                if max_time > 0 and minutes > max_time:
+                    continue
+                if topic_l and not any(topic_l in t.lower() for t in topics):
+                    continue
+
+                haystack = f"{lesson_id} {title}".lower()
+                if q_l and q_l not in haystack:
+                    continue
+
+                items.append({
+                    "module_id": module_id,
+                    "lesson_id": lesson_id,
+                    "title": title,
+                    "level": _lesson_level_by_module(module_id),
+                    "difficulty": lesson_difficulty,
+                    "time_text": time_text,
+                    "time_minutes": minutes,
+                    "topics": topics,
+                })
+
+    return {"items": items}
 
 
 @app.get("/api/lessons/{module_id}")
@@ -1439,6 +1506,42 @@ def get_stats(
         "daily_activity": dict(daily),
         "lesson_times": lesson_times,
     }
+
+
+@app.get("/api/attempts")
+def get_attempts(
+    module_id: Optional[str] = None,
+    lesson_id: Optional[str] = None,
+    limit: int = 10,
+    authorization: Optional[str] = Header(None),
+    db: Session = Depends(get_db),
+):
+    """Останні спроби перевірок для користувача."""
+    payload = get_current_user(authorization)
+    if not payload:
+        raise HTTPException(401, "Не авторизовано")
+    user_id = int(payload["sub"])
+    safe_limit = max(1, min(limit, 50))
+
+    query = db.query(LessonAttempt).filter(LessonAttempt.user_id == user_id)
+    if module_id:
+        query = query.filter(LessonAttempt.module_id == module_id)
+    if lesson_id:
+        query = query.filter(LessonAttempt.lesson_id == lesson_id)
+
+    rows = query.order_by(LessonAttempt.created_at.desc()).limit(safe_limit).all()
+    items = []
+    for row in rows:
+        items.append({
+            "module_id": row.module_id,
+            "lesson_id": row.lesson_id,
+            "passed": bool(row.passed),
+            "error_type": row.error_type,
+            "weak_topics": _safe_json_load_list(row.weak_topics),
+            "feedback": row.feedback,
+            "created_at": row.created_at.isoformat() if row.created_at else None,
+        })
+    return {"items": items}
 
 
 @app.get("/api/adaptive/summary")

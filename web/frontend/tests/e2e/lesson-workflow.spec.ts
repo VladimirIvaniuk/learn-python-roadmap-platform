@@ -217,6 +217,14 @@ test('example loads into editor with visible feedback', async ({ page }) => {
   ).toBeVisible()
 })
 
+test('next-step primary action opens next lesson', async ({ page }) => {
+  await page.goto(LESSON_PATH)
+
+  await expect(page.getByTestId('next-step-primary')).toBeVisible()
+  await page.getByTestId('next-step-primary').click()
+  await expect(page).toHaveURL(/\/lesson\/01_basics\/lesson_05_strings$/)
+})
+
 test('user can sign in from login page', async ({ page }) => {
   await page.goto('/login')
 
@@ -229,6 +237,18 @@ test('user can sign in from login page', async ({ page }) => {
   await expect
     .poll(async () => page.evaluate(() => localStorage.getItem('token')))
     .toBe('test-token')
+})
+
+test('login from lesson keeps return path', async ({ page }) => {
+  await page.goto(LESSON_PATH)
+  await page.getByTestId('sidebar-login-link').click()
+  await expect(page).toHaveURL(/\/login\?returnTo=/)
+
+  await page.locator('input[type="email"]:visible').first().fill('user@example.com')
+  await page.locator('input[type="password"]:visible').first().fill('secret123')
+  await page.locator('button:visible').filter({ hasText: /Увійти|Sign in/i }).first().click()
+
+  await expect(page).toHaveURL(/\/lesson\/01_basics\/lesson_04_functions$/)
 })
 
 test('language toggle updates UI and persists after reload', async ({ page }) => {

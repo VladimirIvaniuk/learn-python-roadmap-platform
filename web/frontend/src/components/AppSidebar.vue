@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { useProgressStore } from '../stores/progress'
@@ -17,8 +17,22 @@ const currentLevel = ref('junior')
 const modulesData = ref<ModuleData[]>([])
 const openModuleId = ref<string | null>(null)
 const searchQuery = ref('')
+const searchDifficulty = ref('all')
+const searchTopic = ref('')
+const searchMaxMinutes = ref<number>(0)
+const searchLoading = ref(false)
+const searchError = ref('')
+const searchResults = ref<Array<{
+  module_id: string
+  lesson_id: string
+  title: string
+  difficulty: string
+  time_text: string
+  topics: string[]
+}>>([])
 const loading = ref(false)
 const compactMode = ref(false)
+let searchTimer: ReturnType<typeof setTimeout> | null = null
 
 const LEVELS = [
   { id: 'junior', label: 'Junior' },
@@ -45,6 +59,18 @@ const filteredModules = computed(() => {
     .map(mod => ({ ...mod, lessons: mod.lessons.filter(l => l.title.toLowerCase().includes(q)) }))
     .filter(mod => mod.lessons.length > 0)
 })
+const hasSearchFilters = computed(() =>
+  !!searchQuery.value.trim() ||
+  searchDifficulty.value !== 'all' ||
+  !!searchTopic.value.trim() ||
+  searchMaxMinutes.value > 0
+)
+const difficultyOptions = computed(() => ([
+  { value: 'all', label: messages.value.sidebar.searchAllDifficulties },
+  { value: 'easy', label: messages.value.home.difficultyEasy },
+  { value: 'medium', label: messages.value.home.difficultyMedium },
+  { value: 'hard', label: messages.value.home.difficultyHard },
+]))
 
 const hasAdaptive = computed(() => auth.isLoggedIn && !!progress.nextLesson)
 const adaptiveTop = computed(() => progress.nextLessons.slice(0, 3))
@@ -55,6 +81,10 @@ const goalPreset = computed({
   },
 })
 const { messages, language, toggleLanguage } = useUiLanguage()
+const loginTarget = computed(() => {
+  const current = route.fullPath || '/'
+  return { path: '/login', query: { returnTo: current } }
+})
 const goalPresetOptions = computed(() =>
   GOAL_PRESET_ORDER.map((value) => ({ value, label: messages.value.common.goalPresets[value] }))
 )
@@ -100,6 +130,39 @@ function toggleCompactMode() {
   compactMode.value = !compactMode.value
 }
 
+async function runServerSearch() {
+  if (!hasSearchFilters.value) {
+    searchResults.value = []
+    searchError.value = ''
+    return
+  }
+  searchLoading.value = true
+  searchError.value = ''
+  try {
+    searchResults.value = await lessons.searchLessons({
+      q: searchQuery.value,
+      level: currentLevel.value,
+      difficulty: searchDifficulty.value,
+      topic: searchTopic.value,
+      maxTime: searchMaxMinutes.value > 0 ? searchMaxMinutes.value : undefined,
+    })
+  } catch {
+    searchError.value = messages.value.sidebar.searchFailed
+  } finally {
+    searchLoading.value = false
+  }
+}
+
+watch(
+  [searchQuery, searchDifficulty, searchTopic, searchMaxMinutes, currentLevel],
+  () => {
+    if (searchTimer) clearTimeout(searchTimer)
+    searchTimer = setTimeout(() => {
+      runServerSearch()
+    }, 250)
+  }
+)
+
 function handleLogout() {
   auth.logout()
   router.push('/')
@@ -121,6 +184,10 @@ onMounted(() => {
 watch(compactMode, (enabled) => {
   localStorage.setItem('learn_python_sidebar_compact', enabled ? '1' : '0')
 })
+
+onUnmounted(() => {
+  if (searchTimer) clearTimeout(searchTimer)
+})
 </script>
 
 <template>
@@ -132,7 +199,7 @@ watch(compactMode, (enabled) => {
 
     <div class="auth-header">
       <span class="user-name" data-testid="sidebar-user-name">{{ auth.user?.username || auth.user?.email || messages.sidebar.guest }}</span>
-      <RouterLink v-if="!auth.isLoggedIn" to="/login" class="btn btn-small" data-testid="sidebar-login-link">{{ messages.sidebar.login }}</RouterLink>
+      <RouterLink v-if="!auth.isLoggedIn" :to="loginTarget" class="btn btn-small" data-testid="sidebar-login-link">{{ messages.sidebar.login }}</RouterLink>
       <button v-else class="btn btn-small" data-testid="sidebar-logout-button" @click="handleLogout">{{ messages.sidebar.logout }}</button>
     </div>
 
@@ -162,6 +229,32 @@ watch(compactMode, (enabled) => {
       >
         {{ compactMode ? '↔' : '⇔' }}
       </button>
+    </div>
+
+    <div class="search-filters">
+      <input
+        v-model="searchTopic"
+        type="text"
+        class="search-input"
+        :placeholder="messages.sidebar.searchTopic"
+      />
+      <div class="filter-row">
+        <select v-model="searchDifficulty" class="goal-select">
+          <option v-for="option in difficultyOptions" :key="option.value" :value="option.value">
+            {{ option.label }}
+          </option>
+        </select>
+        <input
+          v-model.number="searchMaxMinutes"
+          type="number"
+          class="search-input"
+          min="0"
+          step="5"
+          :placeholder="messages.sidebar.searchMaxMinutes"
+        />
+      </div>
+      <div v-if="searchLoading" class="search-meta">{{ messages.status.loading }}</div>
+      <div v-else-if="searchError" class="search-meta" style="color: var(--error);">{{ searchError }}</div>
     </div>
 
     <div v-if="auth.isLoggedIn" class="adaptive-card">
@@ -233,7 +326,22 @@ watch(compactMode, (enabled) => {
         {{ messages.sidebar.loading }}
       </div>
 
-      <template v-for="mod in filteredModules" :key="mod.id">
+      <template v-if="hasSearchFilters">
+        <div v-if="!searchResults.length && !searchLoading" class="search-meta">{{ messages.sidebar.searchNoResults }}</div>
+        <a
+          v-for="item in searchResults"
+          :key="`${item.module_id}/${item.lesson_id}`"
+          href="#"
+          class="lesson-item"
+          :class="{ active: isActive(item.module_id, item.lesson_id), completed: progress.isCompleted(item.module_id, item.lesson_id) }"
+          @click.prevent="goToLesson(item.module_id, item.lesson_id)"
+        >
+          <span class="lesson-check"></span>
+          {{ item.title }}
+        </a>
+      </template>
+
+      <template v-else v-for="mod in filteredModules" :key="mod.id">
         <button
           class="module-btn"
           :class="{ active: openModuleId === mod.id }"

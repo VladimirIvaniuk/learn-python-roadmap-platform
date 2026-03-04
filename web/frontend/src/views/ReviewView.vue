@@ -10,6 +10,7 @@ const progress = useProgressStore()
 const router = useRouter()
 const loading = ref(true)
 const busyKey = ref('')
+const error = ref('')
 const sessionMode = ref(false)
 const sessionIndex = ref(0)
 const sessionResults = ref<Array<{ module_id: string; lesson_id: string; topic: string; success: boolean }>>([])
@@ -23,9 +24,18 @@ onMounted(async () => {
     router.push('/login')
     return
   }
-  await progress.loadReviewQueue()
+  const ok = await progress.loadReviewQueue()
+  if (!ok) error.value = text.value.loadFailed
   loading.value = false
 })
+
+async function retryLoad() {
+  loading.value = true
+  error.value = ''
+  const ok = await progress.loadReviewQueue()
+  if (!ok) error.value = text.value.loadFailed
+  loading.value = false
+}
 
 const overdueItems = computed(() => progress.reviewsDue.filter(i => i.overdue))
 const futureItems = computed(() => progress.reviewsDue.filter(i => !i.overdue))
@@ -35,7 +45,9 @@ const currentSessionItem = computed(() => sessionItems.value[sessionIndex.value]
 async function mark(item: { module_id: string; lesson_id: string; topic: string }, success: boolean) {
   const key = `${item.module_id}/${item.lesson_id}/${item.topic}`
   busyKey.value = key
-  await progress.completeReview(item.module_id, item.lesson_id, item.topic, success)
+  error.value = ''
+  const ok = await progress.completeReview(item.module_id, item.lesson_id, item.topic, success)
+  if (!ok) error.value = text.value.actionFailed
   busyKey.value = ''
 }
 
@@ -65,6 +77,8 @@ async function answerSession(success: boolean) {
     const summary = await progress.completeReviewSession(sessionResults.value)
     if (summary) {
       sessionSummary.value = summary
+    } else {
+      error.value = text.value.actionFailed
     }
     sessionMode.value = false
     sessionIndex.value = 0
@@ -89,6 +103,10 @@ function openLesson(item: { module_id: string; lesson_id: string }) {
       <p class="subtitle">{{ text.subtitle }}</p>
 
       <div v-if="loading" style="color: var(--text-secondary);">{{ messages.status.loading }}</div>
+      <div v-else-if="error" class="inline-error-row">
+        <span>{{ error }} {{ messages.status.genericRetryHint }}</span>
+        <button class="btn btn-small" @click="retryLoad">{{ messages.common.retry }}</button>
+      </div>
 
       <template v-else>
         <div class="stats-section">

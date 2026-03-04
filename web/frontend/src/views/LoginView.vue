@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { useUiLanguage } from '../composables/useUiLanguage'
 
 const router = useRouter()
+const route = useRoute()
 const auth = useAuthStore()
 
 const isLogin = ref(true)
@@ -15,6 +16,11 @@ const error = ref('')
 const loading = ref(false)
 const { messages } = useUiLanguage()
 const text = computed(() => messages.value.login)
+const returnTarget = computed(() => {
+  const fromQuery = typeof route.query.returnTo === 'string' ? route.query.returnTo : ''
+  if (fromQuery.startsWith('/')) return fromQuery
+  return localStorage.getItem('learn_python_last_lesson_path') || '/'
+})
 
 async function submit() {
   error.value = ''
@@ -39,7 +45,7 @@ async function submit() {
 
     const data = await res.json()
     auth.setAuth(data.token, data.user)
-    router.push('/')
+    router.push(returnTarget.value)
   } catch {
     error.value = messages.value.errors.networkWithRetry
   } finally {
@@ -84,7 +90,8 @@ async function submit() {
         </button>
       </form>
 
-      <RouterLink to="/" data-testid="login-guest-link" class="back-link">{{ text.guestMode }}</RouterLink>
+      <p class="login-note">{{ text.progressNote }}</p>
+      <RouterLink :to="returnTarget" data-testid="login-guest-link" class="back-link">{{ text.guestMode }}</RouterLink>
     </div>
   </div>
 </template>
@@ -141,6 +148,12 @@ async function submit() {
 .form-group input:focus { border-color: var(--accent); }
 
 .error-msg { color: var(--error); font-size: 0.85rem; margin-bottom: 1rem; }
+.login-note {
+  margin: 0.85rem 0 0;
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
 .btn-full { width: 100%; margin-top: 0.25rem; }
 .back-link {
   display: block; text-align: center;
