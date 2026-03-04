@@ -4,6 +4,9 @@ import { RouterLink, useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { useProgressStore } from '../stores/progress'
 import { useUiLanguage } from '../composables/useUiLanguage'
+import UiButton from '../components/ui/UiButton.vue'
+import UiCard from '../components/ui/UiCard.vue'
+import UiAlert from '../components/ui/UiAlert.vue'
 
 const auth = useAuthStore()
 const progress = useProgressStore()
@@ -94,95 +97,97 @@ function openLesson(item: { module_id: string; lesson_id: string }) {
 </script>
 
 <template>
-  <div style="background: var(--bg-primary); min-height: 100vh; overflow-y: auto;">
-    <div class="resources-page">
-      <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 0.5rem;">
-        <RouterLink to="/" class="btn btn-small">{{ messages.common.back }}</RouterLink>
-        <h1>{{ text.title }}</h1>
+  <div class="lp-page overflow-y-auto">
+    <div class="mx-auto w-full max-w-5xl px-4 py-5">
+      <div class="mb-3 flex items-center gap-3">
+        <RouterLink to="/">
+          <UiButton size="sm">{{ messages.common.back }}</UiButton>
+        </RouterLink>
+        <h1 class="text-2xl font-semibold">{{ text.title }}</h1>
       </div>
-      <p class="subtitle">{{ text.subtitle }}</p>
+      <p class="mb-5 text-sm text-text-secondary">{{ text.subtitle }}</p>
 
-      <div v-if="loading" style="color: var(--text-secondary);">{{ messages.status.loading }}</div>
-      <div v-else-if="error" class="inline-error-row">
+      <div v-if="loading" class="py-10 text-sm text-text-secondary">{{ messages.status.loading }}</div>
+      <UiAlert v-else-if="error" variant="error">
         <span>{{ error }} {{ messages.status.genericRetryHint }}</span>
-        <button class="btn btn-small" @click="retryLoad">{{ messages.common.retry }}</button>
-      </div>
+        <UiButton size="sm" @click="retryLoad">{{ messages.common.retry }}</UiButton>
+      </UiAlert>
 
       <template v-else>
-        <div class="stats-section">
-          <h3>{{ text.sprintTitle }}</h3>
-          <div v-if="sessionMode && currentSessionItem" class="review-card">
+        <UiCard class="mb-4">
+          <h3 class="mb-3 text-base font-semibold">{{ text.sprintTitle }}</h3>
+          <div v-if="sessionMode && currentSessionItem" class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div>
-              <div class="resource-name">{{ currentSessionItem.topic }}</div>
-              <div class="resource-desc">
+              <div class="text-sm font-semibold">{{ currentSessionItem.topic }}</div>
+              <div class="text-xs text-text-secondary">
                 {{ text.card }} {{ sessionIndex + 1 }}/{{ sessionItems.length }} ·
                 {{ currentSessionItem.module_id }} / {{ currentSessionItem.lesson_id }}
               </div>
             </div>
-            <div style="display: flex; gap: .4rem; flex-wrap: wrap;">
-              <button class="btn btn-small" @click="openLesson(currentSessionItem)">{{ text.openLesson }}</button>
-              <button class="btn btn-small" @click="answerSession(true)">{{ text.know }}</button>
-              <button class="btn btn-small" @click="answerSession(false)">{{ text.repeat }}</button>
-              <button class="btn btn-small" @click="stopSession">{{ text.stop }}</button>
+            <div class="flex flex-wrap gap-2">
+              <UiButton size="sm" @click="openLesson(currentSessionItem)">{{ text.openLesson }}</UiButton>
+              <UiButton size="sm" @click="answerSession(true)">{{ text.know }}</UiButton>
+              <UiButton size="sm" @click="answerSession(false)">{{ text.repeat }}</UiButton>
+              <UiButton size="sm" variant="ghost" @click="stopSession">{{ text.stop }}</UiButton>
             </div>
           </div>
-          <div v-else>
-            <button class="btn btn-small" :disabled="sessionItems.length < 1" @click="startSession">
+          <div v-else class="flex items-center gap-2">
+            <UiButton size="sm" :disabled="sessionItems.length < 1" @click="startSession">
               {{ text.startSprint }}
-            </button>
-            <span style="margin-left: .5rem; color: var(--text-secondary); font-size: .82rem;">
+            </UiButton>
+            <span class="text-xs text-text-secondary">
               {{ text.sprintInfo }}
             </span>
           </div>
-          <div v-if="sessionSummary" style="margin-top: .5rem; color: var(--text-secondary); font-size: .82rem;">
+          <div v-if="sessionSummary" class="mt-2 text-xs text-text-secondary">
             {{ text.session }}: {{ sessionSummary.successes }}/{{ sessionSummary.processed }} · {{ text.bonusXp }}: +{{ sessionSummary.bonus_xp }} ·
             XP: {{ sessionSummary.xp }} · {{ terms.level }} {{ sessionSummary.level }}
           </div>
-        </div>
+        </UiCard>
 
-        <div class="stats-section">
-          <h3>{{ text.overdue }} ({{ overdueItems.length }})</h3>
-          <div v-if="!overdueItems.length" style="color: var(--text-secondary); font-size: .85rem;">
+        <UiCard class="mb-4">
+          <h3 class="mb-3 text-base font-semibold">{{ text.overdue }} ({{ overdueItems.length }})</h3>
+          <div v-if="!overdueItems.length" class="text-sm text-text-secondary">
             {{ text.overdueEmpty }}
           </div>
-          <div v-for="item in overdueItems" :key="`${item.module_id}/${item.lesson_id}/${item.topic}`" class="review-card">
+          <div v-for="item in overdueItems" :key="`${item.module_id}/${item.lesson_id}/${item.topic}`" class="mb-2 flex flex-col gap-2 rounded-lg border border-border p-3 md:flex-row md:items-center md:justify-between">
             <div>
-              <div class="resource-name">{{ item.topic }}</div>
-              <div class="resource-desc">{{ item.module_id }} / {{ item.lesson_id }}</div>
+              <div class="text-sm font-semibold">{{ item.topic }}</div>
+              <div class="text-xs text-text-secondary">{{ item.module_id }} / {{ item.lesson_id }}</div>
             </div>
-            <div style="display: flex; gap: .4rem; flex-wrap: wrap;">
-              <button class="btn btn-small" @click="openLesson(item)">{{ text.openLesson }}</button>
-              <button
-                class="btn btn-small"
+            <div class="flex flex-wrap gap-2">
+              <UiButton size="sm" @click="openLesson(item)">{{ text.openLesson }}</UiButton>
+              <UiButton
+                size="sm"
                 :disabled="busyKey === `${item.module_id}/${item.lesson_id}/${item.topic}`"
                 @click="mark(item, true)"
               >
                 {{ text.know }}
-              </button>
-              <button
-                class="btn btn-small"
+              </UiButton>
+              <UiButton
+                size="sm"
                 :disabled="busyKey === `${item.module_id}/${item.lesson_id}/${item.topic}`"
                 @click="mark(item, false)"
               >
                 {{ text.repeat }}
-              </button>
+              </UiButton>
             </div>
           </div>
-        </div>
+        </UiCard>
 
-        <div class="stats-section">
-          <h3>{{ text.plannedLater }} ({{ futureItems.length }})</h3>
-          <div v-if="!futureItems.length" style="color: var(--text-secondary); font-size: .85rem;">
+        <UiCard>
+          <h3 class="mb-3 text-base font-semibold">{{ text.plannedLater }} ({{ futureItems.length }})</h3>
+          <div v-if="!futureItems.length" class="text-sm text-text-secondary">
             {{ text.plannedEmpty }}
           </div>
-          <div v-for="item in futureItems" :key="`${item.module_id}/${item.lesson_id}/${item.topic}`" class="review-card muted">
+          <div v-for="item in futureItems" :key="`${item.module_id}/${item.lesson_id}/${item.topic}`" class="mb-2 flex flex-col gap-1 rounded-lg border border-border/70 bg-bg-tertiary/60 p-3">
             <div>
-              <div class="resource-name">{{ item.topic }}</div>
-              <div class="resource-desc">{{ item.module_id }} / {{ item.lesson_id }}</div>
+              <div class="text-sm font-semibold">{{ item.topic }}</div>
+              <div class="text-xs text-text-secondary">{{ item.module_id }} / {{ item.lesson_id }}</div>
             </div>
-            <div class="resource-desc">{{ text.plannedAt }} {{ item.due_at ? new Date(item.due_at).toLocaleString('uk-UA') : '—' }}</div>
+            <div class="text-xs text-text-secondary">{{ text.plannedAt }} {{ item.due_at ? new Date(item.due_at).toLocaleString('uk-UA') : '—' }}</div>
           </div>
-        </div>
+        </UiCard>
       </template>
     </div>
   </div>

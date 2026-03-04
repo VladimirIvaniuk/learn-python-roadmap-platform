@@ -233,7 +233,7 @@ test('user can sign in from login page', async ({ page }) => {
   await page.locator('button:visible').filter({ hasText: /Увійти|Sign in/i }).first().click()
 
   await expect(page).toHaveURL(/\/$/)
-  await expect(page.locator('.user-name')).toContainText('Test User')
+  await expect(page.getByTestId('sidebar-user-name')).toContainText('Test User')
   await expect
     .poll(async () => page.evaluate(() => localStorage.getItem('token')))
     .toBe('test-token')

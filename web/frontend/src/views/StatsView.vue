@@ -3,6 +3,9 @@ import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { useUiLanguage } from '../composables/useUiLanguage'
+import UiButton from '../components/ui/UiButton.vue'
+import UiCard from '../components/ui/UiCard.vue'
+import UiAlert from '../components/ui/UiAlert.vue'
 
 interface StatsData {
   total_completed: number
@@ -136,188 +139,175 @@ function levelLabel(level: string): string {
 </script>
 
 <template>
-  <div style="background: var(--bg-primary); min-height: 100vh; overflow-y: auto;">
-    <div class="stats-page">
-      <div class="stats-header">
-        <RouterLink to="/" class="btn btn-small">{{ messages.common.back }}</RouterLink>
-        <h1 style="font-size: 1.4rem;">{{ text.learningStats }}</h1>
+  <div class="lp-page overflow-y-auto">
+    <div class="mx-auto w-full max-w-6xl px-4 py-5">
+      <div class="mb-4 flex items-center gap-3">
+        <RouterLink to="/">
+          <UiButton size="sm">{{ messages.common.back }}</UiButton>
+        </RouterLink>
+        <h1 class="text-2xl font-semibold">{{ text.learningStats }}</h1>
       </div>
 
-      <div v-if="loading" style="color: var(--text-secondary); text-align: center; padding: 3rem;">
+      <div v-if="loading" class="py-10 text-center text-sm text-text-secondary">
         {{ messages.status.loading }}
       </div>
-      <div v-else-if="error" class="inline-error-row" style="margin: 0 0 1rem 0;">
+      <UiAlert v-else-if="error" class="mb-4" variant="error">
         <span>{{ error }} {{ messages.status.genericRetryHint }}</span>
-        <button class="btn btn-small" @click="loadStatsData">{{ messages.common.retry }}</button>
-      </div>
+        <UiButton size="sm" @click="loadStatsData">{{ messages.common.retry }}</UiButton>
+      </UiAlert>
 
       <template v-else-if="stats">
-        <!-- Summary cards -->
-        <div class="stats-cards">
-          <div class="stat-card">
-            <div class="stat-value">{{ stats.total_completed }}</div>
-            <div class="stat-label">{{ text.completedLessons }}</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-value">{{ totalPercent }}%</div>
-            <div class="stat-label">{{ text.overallProgress }}</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-value">{{ totalTimeFormatted }}</div>
-            <div class="stat-label">{{ text.totalTime }}</div>
-          </div>
-          <div v-if="adaptive" class="stat-card">
-            <div class="stat-value">{{ messages.common.levelPrefix }}{{ adaptive.gamification.level }}</div>
-            <div class="stat-label">{{ ui.level }} · {{ adaptive.gamification.xp }} XP</div>
-          </div>
+        <div class="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <UiCard><div class="text-xl font-semibold">{{ stats.total_completed }}</div><div class="text-xs text-text-secondary">{{ text.completedLessons }}</div></UiCard>
+          <UiCard><div class="text-xl font-semibold">{{ totalPercent }}%</div><div class="text-xs text-text-secondary">{{ text.overallProgress }}</div></UiCard>
+          <UiCard><div class="text-xl font-semibold">{{ totalTimeFormatted }}</div><div class="text-xs text-text-secondary">{{ text.totalTime }}</div></UiCard>
+          <UiCard v-if="adaptive"><div class="text-xl font-semibold">{{ messages.common.levelPrefix }}{{ adaptive.gamification.level }}</div><div class="text-xs text-text-secondary">{{ ui.level }} · {{ adaptive.gamification.xp }} XP</div></UiCard>
         </div>
 
-        <!-- Progress by level -->
-        <div class="stats-section">
-          <h3>{{ text.progressByLevels }}</h3>
+        <UiCard class="mb-4">
+          <h3 class="mb-3 text-base font-semibold">{{ text.progressByLevels }}</h3>
           <div
             v-for="(data, level) in stats.by_level"
             :key="level"
-            class="progress-bar-row"
+            class="mb-2 grid grid-cols-[90px_minmax(0,1fr)_56px] items-center gap-2"
           >
-            <span class="progress-bar-label">{{ levelLabel(level) }}</span>
-            <div class="progress-bar-track">
+            <span class="text-xs text-text-secondary">{{ levelLabel(level) }}</span>
+            <div class="h-2 rounded bg-bg-tertiary">
               <div
-                class="progress-bar-fill"
+                class="h-2 rounded bg-accent"
                 :style="{ width: data.total ? (data.done / data.total * 100) + '%' : '0%' }"
               ></div>
             </div>
-            <span class="progress-bar-text">{{ data.done }}/{{ data.total }}</span>
+            <span class="text-xs text-text-secondary">{{ data.done }}/{{ data.total }}</span>
           </div>
-        </div>
+        </UiCard>
 
-        <!-- Activity calendar -->
-        <div class="stats-section">
-          <h3>{{ text.activity52Weeks }}</h3>
-          <div class="calendar">
-            <div v-for="(week, wi) in calendarWeeks" :key="wi" class="calendar-week">
+        <UiCard class="mb-4">
+          <h3 class="mb-3 text-base font-semibold">{{ text.activity52Weeks }}</h3>
+          <div class="flex gap-1 overflow-auto">
+            <div v-for="(week, wi) in calendarWeeks" :key="wi" class="grid grid-rows-7 gap-1">
               <div
                 v-for="day in week"
                 :key="day.date"
-                class="calendar-cell"
+                class="h-3 w-3 rounded-sm border border-border/70"
                 :data-count="cellLevel(day.count)"
+                :style="{ backgroundColor: day.count === 0 ? 'var(--bg-tertiary)' : day.count <= 2 ? 'color-mix(in srgb, var(--accent) 45%, transparent)' : 'var(--accent)' }"
                 :title="`${day.date}: ${day.count} ${text.value.lessonCountSuffix}`"
               ></div>
             </div>
           </div>
-        </div>
+        </UiCard>
 
-        <div v-if="adaptive" class="stats-section">
-          <h3>{{ text.weakTopics }}</h3>
-          <div v-if="!adaptive.weak_topics?.length" style="color: var(--text-secondary); font-size: .85rem;">{{ text.noWeakTopics }}</div>
-          <div v-else class="badges-wrap">
-            <span v-for="t in adaptive.weak_topics" :key="t.topic" class="badge-chip">
+        <UiCard v-if="adaptive" class="mb-4">
+          <h3 class="mb-3 text-base font-semibold">{{ text.weakTopics }}</h3>
+          <div v-if="!adaptive.weak_topics?.length" class="text-sm text-text-secondary">{{ text.noWeakTopics }}</div>
+          <div v-else class="flex flex-wrap gap-2">
+            <span v-for="t in adaptive.weak_topics" :key="t.topic" class="rounded-full border border-border bg-bg-tertiary px-2 py-1 text-xs">
               {{ t.topic }} · {{ t.count }}
             </span>
           </div>
-        </div>
+        </UiCard>
 
-        <div v-if="adaptive?.quests" class="stats-section">
-          <h3>{{ text.quests }}</h3>
-          <div class="stats-cards" style="grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); margin-bottom: 0;">
-            <div class="stat-card" style="text-align:left;">
-              <div style="font-size: .82rem; color: var(--text-secondary); margin-bottom: .5rem;">{{ ui.daily }}</div>
+        <UiCard v-if="adaptive?.quests" class="mb-4">
+          <h3 class="mb-3 text-base font-semibold">{{ text.quests }}</h3>
+          <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
+            <div class="rounded-lg border border-border p-3">
+              <div class="mb-2 text-xs text-text-secondary">{{ ui.daily }}</div>
               <div v-for="q in adaptive.quests.daily" :key="q.id" class="quest-row">
                 <span>{{ q.done ? '✅' : '🎯' }} {{ q.title }}</span>
                 <strong>{{ q.progress }}/{{ q.target }}</strong>
               </div>
             </div>
-            <div class="stat-card" style="text-align:left;">
-              <div style="font-size: .82rem; color: var(--text-secondary); margin-bottom: .5rem;">{{ ui.weekly }}</div>
+            <div class="rounded-lg border border-border p-3">
+              <div class="mb-2 text-xs text-text-secondary">{{ ui.weekly }}</div>
               <div v-for="q in adaptive.quests.weekly" :key="q.id" class="quest-row">
                 <span>{{ q.done ? '✅' : '🎯' }} {{ q.title }}</span>
                 <strong>{{ q.progress }}/{{ q.target }}</strong>
               </div>
             </div>
           </div>
-        </div>
+        </UiCard>
 
-        <div v-if="adaptive?.next_lessons?.length" class="stats-section">
-          <h3>{{ text.adaptiveRecommendationsTop3 }}</h3>
-          <div class="badges-wrap">
+        <UiCard v-if="adaptive?.next_lessons?.length" class="mb-4">
+          <h3 class="mb-3 text-base font-semibold">{{ text.adaptiveRecommendationsTop3 }}</h3>
+          <div class="flex flex-wrap gap-2">
             <RouterLink
               v-for="item in adaptive.next_lessons"
               :key="`${item.module_id}/${item.lesson_id}`"
               :to="`/lesson/${item.module_id}/${item.lesson_id}`"
-              class="badge-chip"
+              class="rounded-full border border-border bg-bg-tertiary px-2 py-1 text-xs hover:border-accent"
               :title="`${ui.score}: ${item.score ?? 0} · ${item.reason ?? ''}`"
             >
               {{ item.title || item.lesson_id }} · {{ item.score ?? 0 }}
             </RouterLink>
           </div>
-        </div>
+        </UiCard>
 
-        <div v-if="adaptive" class="stats-section">
-          <h3>{{ text.skillsMap }}</h3>
+        <UiCard v-if="adaptive" class="mb-4">
+          <h3 class="mb-3 text-base font-semibold">{{ text.skillsMap }}</h3>
           <div
             v-for="(node, name) in adaptive.skill_map"
             :key="name"
-            class="progress-bar-row"
+            class="mb-2 grid grid-cols-[120px_minmax(0,1fr)_56px] items-center gap-2"
           >
-            <span class="progress-bar-label">{{ name }}</span>
-            <div class="progress-bar-track">
-              <div class="progress-bar-fill" :style="{ width: node.percent + '%' }"></div>
+            <span class="text-xs text-text-secondary">{{ name }}</span>
+            <div class="h-2 rounded bg-bg-tertiary">
+              <div class="h-2 rounded bg-accent" :style="{ width: node.percent + '%' }"></div>
             </div>
-            <span class="progress-bar-text">{{ node.done }}/{{ node.total }}</span>
+            <span class="text-xs text-text-secondary">{{ node.done }}/{{ node.total }}</span>
           </div>
-        </div>
+        </UiCard>
 
-        <div v-if="adaptive?.skill_lesson_matrix" class="stats-section">
-          <h3>{{ text.skillsMatrixByLesson }}</h3>
-          <div v-for="(rows, skill) in adaptive.skill_lesson_matrix" :key="skill" style="margin-bottom: .8rem;">
-            <div style="font-size: .82rem; color: var(--text-secondary); margin-bottom: .35rem;">{{ skill }}</div>
-            <div class="badges-wrap">
+        <UiCard v-if="adaptive?.skill_lesson_matrix" class="mb-4">
+          <h3 class="mb-3 text-base font-semibold">{{ text.skillsMatrixByLesson }}</h3>
+          <div v-for="(rows, skill) in adaptive.skill_lesson_matrix" :key="skill" class="mb-3">
+            <div class="mb-1 text-xs text-text-secondary">{{ skill }}</div>
+            <div class="flex flex-wrap gap-2">
               <RouterLink
                 v-for="item in rows"
                 :key="`${item.module_id}/${item.lesson_id}`"
                 :to="`/lesson/${item.module_id}/${item.lesson_id}`"
-                class="badge-chip"
+                class="rounded-full border bg-bg-tertiary px-2 py-1 text-xs"
                 :style="{ borderColor: item.done ? 'var(--success)' : 'var(--border)' }"
               >
                 {{ item.done ? '✓' : '○' }} {{ item.title }}
               </RouterLink>
             </div>
           </div>
-        </div>
+        </UiCard>
 
-        <div v-if="adaptive" class="stats-section">
-          <h3>{{ text.badges }}</h3>
-          <div class="badges-wrap">
-            <span v-for="b in adaptive.gamification.badges" :key="b" class="badge-chip">{{ b }}</span>
-            <span v-if="!adaptive.gamification.badges.length" style="color: var(--text-secondary); font-size: .85rem;">{{ text.noBadges }}</span>
+        <UiCard v-if="adaptive" class="mb-4">
+          <h3 class="mb-3 text-base font-semibold">{{ text.badges }}</h3>
+          <div class="flex flex-wrap gap-2">
+            <span v-for="b in adaptive.gamification.badges" :key="b" class="rounded-full border border-border bg-bg-tertiary px-2 py-1 text-xs">{{ b }}</span>
+            <span v-if="!adaptive.gamification.badges.length" class="text-sm text-text-secondary">{{ text.noBadges }}</span>
           </div>
-        </div>
+        </UiCard>
 
-        <!-- Completed lessons table -->
-        <div class="stats-section">
-          <h3>{{ text.completedLessonsSection }}</h3>
-          <div v-if="!stats.lesson_times.length" style="color: var(--text-secondary); font-size: 0.85rem;">
+        <UiCard>
+          <h3 class="mb-3 text-base font-semibold">{{ text.completedLessonsSection }}</h3>
+          <div v-if="!stats.lesson_times.length" class="text-sm text-text-secondary">
             {{ text.noCompletedLessons }}
           </div>
-          <table v-else class="completed-table">
+          <table v-else class="w-full border-collapse overflow-hidden rounded-lg border border-border text-sm">
             <thead>
-              <tr>
-                <th>{{ text.colModule }}</th>
-                <th>{{ text.colLesson }}</th>
-                <th>{{ text.colTime }}</th>
-                <th>{{ text.colDate }}</th>
+              <tr class="bg-bg-tertiary text-left text-xs text-text-secondary">
+                <th class="px-2 py-2">{{ text.colModule }}</th>
+                <th class="px-2 py-2">{{ text.colLesson }}</th>
+                <th class="px-2 py-2">{{ text.colTime }}</th>
+                <th class="px-2 py-2">{{ text.colDate }}</th>
               </tr>
             </thead>
             <tbody>
-              <tr v-for="(item, i) in stats.lesson_times" :key="i">
-                <td>{{ item.module_id }}</td>
-                <td>{{ item.lesson_id }}</td>
-                <td>{{ item.time_spent ? formatTime(item.time_spent) : '—' }}</td>
-                <td>{{ formatDate(item.completed_at) }}</td>
+              <tr v-for="(item, i) in stats.lesson_times" :key="i" class="border-t border-border">
+                <td class="px-2 py-2">{{ item.module_id }}</td>
+                <td class="px-2 py-2">{{ item.lesson_id }}</td>
+                <td class="px-2 py-2">{{ item.time_spent ? formatTime(item.time_spent) : '—' }}</td>
+                <td class="px-2 py-2">{{ formatDate(item.completed_at) }}</td>
               </tr>
             </tbody>
           </table>
-        </div>
+        </UiCard>
       </template>
     </div>
   </div>

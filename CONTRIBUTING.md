@@ -8,6 +8,7 @@ Thanks for contributing to `learn-python-roadmap-platform`.
 - Avoid duplicated logic and docs (DRY).
 - Follow existing architecture and style (consistency first).
 - Prefer secure defaults and explicit validation.
+- For frontend UI: prefer Tailwind utilities + Headless UI primitives over ad-hoc CSS.
 
 ## Setup
 
@@ -52,6 +53,8 @@ Frontend e2e smoke:
 cd web/frontend
 npm run test:e2e
 ```
+
+Includes route-level smoke and visual snapshot attachments (`routes-smoke.spec.ts`).
 
 Frontend build check:
 

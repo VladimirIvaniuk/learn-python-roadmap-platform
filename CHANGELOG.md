@@ -2,6 +2,34 @@
 
 Усі помітні зміни в проєкті фіксуються в цьому файлі.
 
+## [v0.1.2] - 2026-03-04
+
+### Added
+
+- Додано route-level Playwright smoke тести з visual snapshots attachments:
+  - `tests/e2e/routes-smoke.spec.ts` покриває guest та authenticated маршрути.
+- Додано Tailwind/Headless UI primitives для уніфікації базового UI шару:
+  - `UiButton`, `UiInput`, `UiCard`, `UiAlert`, `UiTabs`, `UiModal`, `UiSelect`.
+
+### Changed
+
+- Проведено full UI migration pass на Tailwind + Headless UI з фокусом на стабільність layout:
+  - оновлено `HomeView`, `AppSidebar`, `LessonBody`, `HintModal`,
+  - уніфіковано `Login`, `Resources`, `Review`, `Plan`, `Stats`.
+- Виправлено критичні UX-регресії після міграції:
+  - стабілізовано вкладки/панелі (`UiTabs`),
+  - відновлено скрол у центральному блоці теорії,
+  - відновлено видимість lesson list у лівому sidebar.
+- Виконано фінальний density/typography polishing у `style.css`:
+  - лівий, центральний і правий блоки узгоджені по відступах/розмірах,
+  - light-theme контраст і hover-стани вирівняні,
+  - зафіксовано responsive baseline для `1024-1280` і `1281-1440`.
+
+### Quality
+
+- Пройдено frontend build (`vue-tsc + vite build`).
+- Пройдено Playwright e2e suite (10/10) і route-level smoke (2/2).
+
 ## [v0.1.1] - 2026-03-04
 
 ### Added

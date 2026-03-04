@@ -6,6 +6,10 @@ import { useProgressStore } from '../stores/progress'
 import { useLessonsStore, type ModuleData } from '../stores/lessons'
 import { GOAL_PRESET_ORDER, type GoalPreset } from '../i18n/ui'
 import { useUiLanguage } from '../composables/useUiLanguage'
+import { Disclosure, DisclosureButton, DisclosurePanel } from '@headlessui/vue'
+import UiButton from './ui/UiButton.vue'
+import UiInput from './ui/UiInput.vue'
+import UiSelect from './ui/UiSelect.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -199,8 +203,10 @@ onUnmounted(() => {
 
     <div class="auth-header">
       <span class="user-name" data-testid="sidebar-user-name">{{ auth.user?.username || auth.user?.email || messages.sidebar.guest }}</span>
-      <RouterLink v-if="!auth.isLoggedIn" :to="loginTarget" class="btn btn-small" data-testid="sidebar-login-link">{{ messages.sidebar.login }}</RouterLink>
-      <button v-else class="btn btn-small" data-testid="sidebar-logout-button" @click="handleLogout">{{ messages.sidebar.logout }}</button>
+      <RouterLink v-if="!auth.isLoggedIn" :to="loginTarget" data-testid="sidebar-login-link">
+        <UiButton size="sm">{{ messages.sidebar.login }}</UiButton>
+      </RouterLink>
+      <UiButton v-else size="sm" data-testid="sidebar-logout-button" @click="handleLogout">{{ messages.sidebar.logout }}</UiButton>
     </div>
 
     <div class="quick-links">
@@ -211,104 +217,31 @@ onUnmounted(() => {
     </div>
 
     <div class="top-actions">
-      <input
-        v-model="searchQuery"
-        type="text"
-        class="search-input"
-        :placeholder="messages.sidebar.searchLessons"
-      />
-      <button class="btn btn-small" :title="messages.sidebar.toggleTheme" @click="toggleTheme">🌓</button>
-      <button class="btn btn-small" :title="messages.sidebar.exportProgress" @click="exportProgress">📥</button>
-      <button class="btn btn-small" data-testid="language-toggle" :title="messages.common.languageToggleTitle" @click="toggleLanguage">
-        {{ language === 'uk' ? 'UA' : 'EN' }}
-      </button>
-      <button
-        class="btn btn-small"
-        :title="compactMode ? messages.sidebar.compactDisable : messages.sidebar.compactEnable"
-        @click="toggleCompactMode"
-      >
-        {{ compactMode ? '↔' : '⇔' }}
-      </button>
+      <UiInput v-model="searchQuery" :placeholder="messages.sidebar.searchLessons" />
+      <div class="sidebar-actions-grid">
+        <UiButton size="sm" :title="messages.sidebar.toggleTheme" @click="toggleTheme">🌓</UiButton>
+        <UiButton size="sm" :title="messages.sidebar.exportProgress" @click="exportProgress">📥</UiButton>
+        <UiButton size="sm" data-testid="language-toggle" :title="messages.common.languageToggleTitle" @click="toggleLanguage">
+          {{ language === 'uk' ? 'UA' : 'EN' }}
+        </UiButton>
+        <UiButton
+          size="sm"
+          :title="compactMode ? messages.sidebar.compactDisable : messages.sidebar.compactEnable"
+          @click="toggleCompactMode"
+        >
+          {{ compactMode ? '↔' : '⇔' }}
+        </UiButton>
+      </div>
     </div>
 
     <div class="search-filters">
-      <input
-        v-model="searchTopic"
-        type="text"
-        class="search-input"
-        :placeholder="messages.sidebar.searchTopic"
-      />
+      <UiInput v-model="searchTopic" :placeholder="messages.sidebar.searchTopic" />
       <div class="filter-row">
-        <select v-model="searchDifficulty" class="goal-select">
-          <option v-for="option in difficultyOptions" :key="option.value" :value="option.value">
-            {{ option.label }}
-          </option>
-        </select>
-        <input
-          v-model.number="searchMaxMinutes"
-          type="number"
-          class="search-input"
-          min="0"
-          step="5"
-          :placeholder="messages.sidebar.searchMaxMinutes"
-        />
+        <UiSelect v-model="searchDifficulty" :options="difficultyOptions" />
+        <UiInput v-model="searchMaxMinutes" type="number" min="0" step="5" :placeholder="messages.sidebar.searchMaxMinutes" />
       </div>
       <div v-if="searchLoading" class="search-meta">{{ messages.status.loading }}</div>
       <div v-else-if="searchError" class="search-meta" style="color: var(--error);">{{ searchError }}</div>
-    </div>
-
-    <div v-if="auth.isLoggedIn" class="adaptive-card">
-      <div class="adaptive-title">🧭 {{ messages.terms.adaptiveRoute }}</div>
-      <div class="adaptive-row">XP: <strong>{{ progress.gamification.xp }}</strong> · {{ messages.terms.level }} {{ progress.gamification.level }}</div>
-      <div class="adaptive-row">{{ messages.sidebar.reviewsNow }} <strong>{{ progress.reviewsDueCount }}</strong></div>
-      <label class="adaptive-row" style="display: flex; align-items: center; gap: .35rem;">
-        {{ messages.sidebar.goal }}
-        <select
-          :value="goalPreset"
-          class="goal-select"
-          @change="goalPreset = ($event.target as HTMLSelectElement).value as GoalPreset"
-        >
-          <option
-            v-for="option in goalPresetOptions"
-            :key="option.value"
-            :value="option.value"
-          >
-            {{ option.label }}
-          </option>
-        </select>
-      </label>
-      <button
-        class="btn btn-small"
-        style="margin-top: .4rem; width: 100%;"
-        :disabled="!hasAdaptive"
-        @click="goToAdaptiveNext"
-      >
-        {{ hasAdaptive ? messages.sidebar.continue : messages.sidebar.noRecommendations }}
-      </button>
-      <div v-if="adaptiveTop.length" style="margin-top: .5rem;">
-        <details class="adaptive-block" open>
-          <summary class="adaptive-block-title">{{ messages.sidebar.recommendationsPanel }}</summary>
-          <div
-            v-for="item in adaptiveTop"
-            :key="`${item.module_id}/${item.lesson_id}`"
-            class="adaptive-rec-card"
-            :title="`${messages.terms.score}: ${item.score ?? 0} · ${item.reason}`"
-            @click="goToLesson(item.module_id, item.lesson_id)"
-          >
-            <div class="adaptive-rec-title">{{ item.title || item.lesson_id }}</div>
-            <div class="adaptive-rec-reason">{{ item.reason }} · {{ messages.terms.score }} {{ item.score ?? 0 }}</div>
-          </div>
-        </details>
-      </div>
-      <div v-if="progress.quests.daily.length" style="margin-top: .5rem;">
-        <details class="adaptive-block">
-          <summary class="adaptive-block-title">{{ messages.sidebar.questsPanel }}</summary>
-          <div v-for="q in progress.quests.daily" :key="q.id" class="quest-row">
-            <span>{{ q.done ? '✅' : '🎯' }} {{ q.title }}</span>
-            <span>{{ q.progress }}/{{ q.target }}</span>
-          </div>
-        </details>
-      </div>
     </div>
 
     <div class="level-tabs">
@@ -366,5 +299,49 @@ onUnmounted(() => {
         </div>
       </template>
     </nav>
+
+    <div v-if="auth.isLoggedIn" class="adaptive-card">
+      <div class="adaptive-title">🧭 {{ messages.terms.adaptiveRoute }}</div>
+      <div class="adaptive-row">XP: <strong>{{ progress.gamification.xp }}</strong> · {{ messages.terms.level }} {{ progress.gamification.level }}</div>
+      <div class="adaptive-row">{{ messages.sidebar.reviewsNow }} <strong>{{ progress.reviewsDueCount }}</strong></div>
+      <div style="margin-top: 0.4rem; margin-bottom: 0.4rem;">
+        <label class="adaptive-row">{{ messages.sidebar.goal }}</label>
+        <UiSelect v-model="goalPreset" :options="goalPresetOptions" />
+      </div>
+      <UiButton
+        size="sm"
+        style="margin-top: .4rem; width: 100%;"
+        :disabled="!hasAdaptive"
+        @click="goToAdaptiveNext"
+      >
+        {{ hasAdaptive ? messages.sidebar.continue : messages.sidebar.noRecommendations }}
+      </UiButton>
+
+      <Disclosure v-if="adaptiveTop.length" as="div" style="margin-top: .5rem;">
+        <DisclosureButton class="adaptive-block-title">{{ messages.sidebar.recommendationsPanel }}</DisclosureButton>
+        <DisclosurePanel style="margin-top: .3rem;">
+          <button
+            v-for="item in adaptiveTop"
+            :key="`${item.module_id}/${item.lesson_id}`"
+            class="adaptive-rec-card"
+            :title="`${messages.terms.score}: ${item.score ?? 0} · ${item.reason}`"
+            @click="goToLesson(item.module_id, item.lesson_id)"
+          >
+            <div class="adaptive-rec-title">{{ item.title || item.lesson_id }}</div>
+            <div class="adaptive-rec-reason">{{ item.reason }} · {{ messages.terms.score }} {{ item.score ?? 0 }}</div>
+          </button>
+        </DisclosurePanel>
+      </Disclosure>
+
+      <Disclosure v-if="progress.quests.daily.length" as="div" style="margin-top: .5rem;">
+        <DisclosureButton class="adaptive-block-title">{{ messages.sidebar.questsPanel }}</DisclosureButton>
+        <DisclosurePanel style="margin-top: .3rem;">
+          <div v-for="q in progress.quests.daily" :key="q.id" class="quest-row">
+            <span>{{ q.done ? '✅' : '🎯' }} {{ q.title }}</span>
+            <span>{{ q.progress }}/{{ q.target }}</span>
+          </div>
+        </DisclosurePanel>
+      </Disclosure>
+    </div>
   </aside>
 </template>
