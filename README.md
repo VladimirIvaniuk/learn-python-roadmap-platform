@@ -60,6 +60,7 @@ sqlite3 web/learn_python.db ".tables"
 - [CONTRIBUTING.md](CONTRIBUTING.md)
 - [SECURITY.md](SECURITY.md)
 - [docs/ops/runbook.md](docs/ops/runbook.md)
+- [CHANGELOG.md](CHANGELOG.md)
 
 ## Troubleshooting
 
